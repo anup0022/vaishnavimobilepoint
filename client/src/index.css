@@ -1,0 +1,438 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * Design tokens — Bench: a dark studio.
+ *
+ * Two lights define everything: a warm key (`--color-key`, amber) and a
+ * cold rim (`brand-*`, blue). Surfaces are matte, never glass — a blurred
+ * pane over a dark page reads as grey mud, and backdrop-filter is GPU
+ * work this shop's budget-Android customers pay for on every frame.
+ *
+ * `ink-*` is the surface ramp (950 = page, 900/850 = panels, 800 = fills,
+ * 700/600/500 = lines) and `mist-*` is the type ramp (50 = brightest,
+ * 500 = faintest). Every component is written against those two scales,
+ * so the whole site — storefront and CMS — re-themes from this block.
+ * ------------------------------------------------------------------ */
+
+@theme {
+  --color-ink-950: #0a0c10; /* stage, behind everything */
+  --color-ink-900: #14181f; /* panels                   */
+  --color-ink-850: #11151c; /* nested / secondary panes */
+  --color-ink-800: #1a1f29; /* chips, small fills       */
+  --color-ink-700: #222835; /* the edge of a panel      */
+  --color-ink-600: #2c3342; /* a stronger line          */
+  --color-ink-500: #3a4254;
+
+  /* Every step clears 4.5:1 on ink-950 and on ink-900. mist-500 is the
+     floor at 4.8:1 — nothing below it is allowed to carry meaning. */
+  --color-mist-50:  #f2f5fa; /* headings  */
+  --color-mist-200: #d6dce8; /* strong    */
+  --color-mist-300: #b3bccd; /* secondary */
+  --color-mist-400: #8b94a6; /* body      */
+  --color-mist-500: #737d91; /* captions  */
+
+  /* The cold rim light. Inverted against the old light theme: 700 is now
+     the *lightest* step, because accent text on a dark surface has to
+     rise off the page rather than sink into it. */
+  --color-brand-50:  #0e1b2b;
+  --color-brand-100: #15293f;
+  --color-brand-500: #4f9bf0;
+  --color-brand-600: #2a7de1;
+  --color-brand-700: #7cb8f7;
+
+  /* The warm key light. The signature of this direction. */
+  --color-key:     #f0a54a;
+  --color-key-dim: #b87a2e;
+
+  --color-success: #35e0a1;
+  --color-warn:    #f0a54a;
+  --color-danger:  #ff6b5e;
+
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Numbers are instrumentation here: price, spec, ticket, turnaround. */
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  --radius-xl2: 1.5rem;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+
+@layer base {
+  * {
+    border-color: var(--color-ink-700);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    color: var(--color-mist-200);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv02', 'cv03', 'cv04';
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    background-color: var(--color-ink-950);
+    /* The two lights, thrown onto the stage. Fixed, so they read as
+       lighting rather than as blobs that drift during a scroll. */
+    background-image:
+      radial-gradient(48% 42% at 12% 6%,  rgb(240 165 74 / 0.10) 0%, transparent 64%),
+      radial-gradient(44% 40% at 88% 14%, rgb(42 125 225 / 0.13) 0%, transparent 64%),
+      radial-gradient(52% 46% at 78% 92%, rgb(42 125 225 / 0.07) 0%, transparent 64%),
+      radial-gradient(40% 38% at 6% 86%,  rgb(53 224 161 / 0.05) 0%, transparent 64%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    letter-spacing: -0.028em;
+    line-height: 1.1;
+    color: var(--color-mist-50);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-key) 30%, transparent);
+    color: var(--color-mist-50);
+  }
+
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: var(--color-ink-900); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-600);
+    border-radius: 9999px;
+    border: 3px solid var(--color-ink-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-key);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  input, select, textarea, button { font-family: inherit; }
+
+  input[type='date'] { color-scheme: dark; }
+  select option { background: var(--color-ink-900); color: var(--color-mist-50); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Surfaces and effects
+ * ------------------------------------------------------------------ */
+
+@layer components {
+  /* ---------------------------------------------------------------- *
+   * Matte, not glass.
+   *
+   * The previous theme built every pane out of backdrop-filter. On a dark
+   * stage a blurred pane reads as grey mud rather than as glass, and the
+   * blur was GPU work paid on every frame by exactly the budget Android
+   * handsets this shop's customers carry. These surfaces are a flat fill,
+   * a hairline edge lit from above, and a shadow deep enough to separate
+   * the panel from the stage — so there is no blur to downgrade on mobile
+   * and no compositing layer per card.
+   *
+   * The class names are unchanged on purpose: 64 class lists across the
+   * storefront and the CMS already use them.
+   * ---------------------------------------------------------------- */
+
+  .glass {
+    background: var(--color-ink-900);
+    border: 1px solid var(--color-ink-700);
+  }
+
+  .glass-strong {
+    background: color-mix(in srgb, var(--color-ink-900) 92%, black);
+    border: 1px solid var(--color-ink-600);
+  }
+
+  .lift {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.04),
+      0 1px 2px rgb(0 0 0 / 0.5),
+      0 10px 28px -14px rgb(0 0 0 / 0.75);
+  }
+  .lift-lg {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 2px 6px rgb(0 0 0 / 0.5),
+      0 26px 60px -24px rgb(0 0 0 / 0.85);
+  }
+
+  /* A single specular band swept across a panel — the studio light
+     catching an edge. Pointer-only: a touch device never un-hovers, so
+     on a phone the sheen would stick after the tap. */
+  .card-sheen { position: relative; overflow: hidden; }
+  .card-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.07) 50%, transparent 62%);
+    transform: translate3d(-100%, 0, 0);
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .card-sheen:hover::after {
+      transform: translate3d(100%, 0, 0);
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+
+  .gradient-border {
+    background: var(--color-ink-900);
+    border: 1px solid var(--color-ink-700);
+  }
+
+  /* The wash itself is drawn by ::before, which bleeds well past its box.
+     The outer element stays pinned to inset:0 and clips it, so a scrollable
+     panel never gains phantom scroll height from the decoration. */
+  .grid-lines {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.03) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, #000 30%, transparent 100%);
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, var(--color-ink-900) 25%, var(--color-ink-800) 50%, var(--color-ink-900) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  /* The key light. Primary actions are the warm one; everything else is
+     cold, so there is exactly one obvious thing to press per view. */
+  .btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.7rem;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+    color: #0a0c10;
+    background: var(--color-key);
+    box-shadow: 0 2px 18px -4px rgb(240 165 74 / 0.45);
+    transition: filter 0.18s ease, box-shadow 0.18s ease;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 2px 24px -4px rgb(240 165 74 / 0.6);
+  }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; filter: none; }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.7rem;
+    padding: 0.8rem 1.5rem;
+    font-weight: 600;
+    color: var(--color-mist-200);
+    border: 1px solid var(--color-ink-600);
+    background: var(--color-ink-900);
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  }
+  .btn-ghost:hover {
+    background: var(--color-ink-800);
+    border-color: var(--color-brand-600);
+    color: var(--color-mist-50);
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 0.6rem;
+    background: var(--color-ink-850);
+    border: 1px solid var(--color-ink-600);
+    padding: 0.8rem 1rem;
+    color: var(--color-mist-50);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .field::placeholder { color: var(--color-mist-500); }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-key);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-key) 18%, transparent);
+  }
+
+  .label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mist-500);
+    margin-bottom: 0.45rem;
+  }
+
+  /*
+   * Without this, mobile Safari and older Android browsers wait ~300ms after
+   * a tap to see whether it becomes a double-tap-to-zoom. That delay alone is
+   * larger than the entire press-feedback budget.
+   */
+  a, button, [role='button'], .option, label {
+    touch-action: manipulation;
+  }
+
+  /* Press feedback for anything that is tappable but not a card. */
+  .btn-primary:active,
+  .btn-ghost:active {
+    transform: scale(0.975);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 9999px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* Instrumentation: anything that is a measurement rather than prose. */
+  .readout {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced transparency
+ *
+ * The mobile blur downgrade that used to live here is gone: nothing on
+ * the site uses backdrop-filter any more, so there is no radius to scale
+ * back and the budget-Android cost is zero at every width.
+ *
+ * Some people still turn transparency down at the OS level. Nothing here
+ * is translucent, so only the lighting on the stage needs to go — it is
+ * the one thing that reads as a layer behind the content.
+ * ------------------------------------------------------------------ */
+
+@media (prefers-reduced-transparency: reduce) {
+  body { background-image: none; }
+  .grid-lines { background-image: none; }
+  .card-sheen::after { display: none; }
+}
+
+/* ------------------------------------------------------------------ *
+ * Full-bleed
+ *
+ * Escapes a centred, padded container so an element spans the whole
+ * viewport. body already sets overflow-x: hidden, so the 100vw width
+ * cannot introduce a horizontal scrollbar.
+ * ------------------------------------------------------------------ */
+
+.full-bleed {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  max-width: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Home page scenes
+ *
+ * The homepage is a sequence of scenes, one of which ScrollTrigger pins
+ * while its contents play. Pinning replaced the old scroll-snap engine:
+ * the two cannot coexist, because `scroll-snap-type: y mandatory` and a
+ * pinned element both want to own the same gesture, and the snap wins by
+ * yanking the page off the pin mid-animation.
+ *
+ * Section anchors, the section rail and keyboard paging all still work —
+ * they were never the snap's doing.
+ * ------------------------------------------------------------------ */
+
+.scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  /* Clears the dock, which overlays the top of each scene. */
+  padding-top: 6rem;
+  padding-bottom: 3rem;
+  scroll-margin-top: 5rem;
+}
+
+/* A pinned scene has to be exactly one viewport tall, or ScrollTrigger is
+   asked to hold still a box that does not fit. */
+@media (min-width: 768px) {
+  .scene-pinned {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/* Below the breakpoint nothing is pinned — a pinned scene on a phone traps
+   the thumb, and the compositing lands on the weakest hardware. Scenes
+   flow normally and the teardown ships already separated. */
+@media (max-width: 767px) {
+  .scene {
+    min-height: 0;
+    padding-top: 4rem;
+    padding-bottom: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene,
+  .scene-pinned {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Keyframes
+ * ------------------------------------------------------------------ */
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes marquee {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+.animate-marquee { animation: marquee 32s linear infinite; }
+.marquee-host:hover .animate-marquee { animation-play-state: paused; }
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+.animate-float { animation: float-y 6s ease-in-out infinite; }
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.7; }
+  70%  { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.animate-pulse-ring { animation: pulse-ring 2.4s cubic-bezier(0.3, 0, 0.3, 1) infinite; }
+
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spin-slow 18s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

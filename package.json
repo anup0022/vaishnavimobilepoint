@@ -1,0 +1,23 @@
+{
+  "name": "vaishnavi-mobile-shop",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CMS, stock management, service booking and repair tracking for Vaishnavi Mobile Shop, Ranchi",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "build:client": "npm --prefix client install && npm --prefix client run build"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}

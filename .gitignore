@@ -1,0 +1,18 @@
+node_modules
+client/dist
+data/*.sqlite
+data/*.sqlite-*
+uploads/*
+!uploads/.gitkeep
+.DS_Store
+.env
+.npm-cache
+
+# Design exploration artefacts. The source of the previews is kept; the
+# generated screenshots (60MB), the isolated tool install and the pre-redesign
+# snapshot are local working files, not project history.
+design/baseline/
+design/after/
+design/concepts/
+design/.tools/
+design/.snapshot-pre-redesign/

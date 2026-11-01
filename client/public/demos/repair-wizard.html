@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Select your repair — multi-step wizard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:       #0b1120;
+    --panel:    rgb(255 255 255 / 0.055);
+    --panel-hi: rgb(255 255 255 / 0.10);
+    --ink:      #f3f6fc;
+    --ink-dim:  #93a1bb;
+    --brand:    #3b82f6;
+    --line:     rgb(255 255 255 / 0.12);
+    --ok:       #34d399;
+
+    /* One place to retune the feel of the whole wizard. */
+    --t-press:  120ms;   /* finger down, card dips          */
+    --t-slide:  240ms;   /* step out, next step in          */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoots, then settles */
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; min-height: 100svh;
+    display: grid; place-items: center;
+    padding: 24px 16px;
+    background:
+      radial-gradient(60% 50% at 15% 0%, rgb(59 130 246 / 0.16), transparent 60%),
+      radial-gradient(50% 40% at 90% 100%, rgb(52 211 153 / 0.10), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wizard {
+    width: min(560px, 100%);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgb(255 255 255 / 0.04);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.8);
+    overflow: hidden;
+  }
+
+  header { padding: 22px 22px 0; }
+  .crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .crumb {
+    height: 4px; flex: 1; border-radius: 99px;
+    background: var(--panel-hi);
+    overflow: hidden;
+  }
+  .crumb i {
+    display: block; height: 100%; width: 0%;
+    background: var(--brand);
+    border-radius: inherit;
+    transition: width var(--t-slide) var(--ease-out);
+  }
+  .crumb.done i, .crumb.active i { width: 100%; }
+  .crumb.active i { background: linear-gradient(90deg, var(--brand), #60a5fa); }
+
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .sub { color: var(--ink-dim); font-size: 14px; margin: 0; }
+
+  /*
+   * The viewport clips the sliding steps. Its height is animated to the
+   * height of whichever step is showing, so the card grows and shrinks with
+   * its content instead of being padded out to the tallest step.
+   */
+  .viewport {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 22px 22px;
+    transition: height var(--t-slide) var(--ease-out);
+  }
+
+  .step {
+    display: grid;
+    gap: 10px;
+    /* Steps stack on top of each other while one slides out and the next
+       slides in. Only the active one is in flow for measurement. */
+  }
+  .step[hidden] { display: none; }
+  .step.is-leaving, .step.is-entering {
+    position: absolute;
+    inset: 20px 22px auto;
+  }
+
+  /* translate3d, not translateX: the z keeps the element on the compositor
+     and stops the text re-rasterising halfway through the slide. */
+  @keyframes slide-out-left {
+    to { transform: translate3d(-24px, 0, 0); opacity: 0; }
+  }
+  @keyframes slide-in-right {
+    from { transform: translate3d(28px, 0, 0); opacity: 0; }
+    to   { transform: translate3d(0, 0, 0);    opacity: 1; }
+  }
+  @keyframes slide-out-right {
+    to { transform: translate3d(24px, 0, 0); opacity: 0; }
+  }
+  @keyframes slide-in-left {
+    from { transform: translate3d(-28px, 0, 0); opacity: 0; }
+    to   { transform: translate3d(0, 0, 0);     opacity: 1; }
+  }
+
+  .step.is-leaving  { animation: slide-out-left  var(--t-slide) var(--ease-out) forwards; }
+  .step.is-entering { animation: slide-in-right  var(--t-slide) var(--ease-out) forwards; }
+  .step.is-leaving.back  { animation-name: slide-out-right; }
+  .step.is-entering.back { animation-name: slide-in-left; }
+
+  .option {
+    appearance: none;
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    padding: 15px 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    color: inherit;
+    font: inherit; text-align: left;
+    cursor: pointer;
+    /* Only transform and background animate — both compositor-friendly.
+       Nothing here triggers layout. */
+    transition:
+      transform var(--t-press) var(--ease-out),
+      background var(--t-press) linear,
+      border-color var(--t-press) linear;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;   /* removes the 300ms tap delay on iOS */
+  }
+  .option:hover { background: var(--panel-hi); border-color: rgb(255 255 255 / 0.2); }
+  .option:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+  /* The dip. Pointer-down only — it must track the finger, not the click. */
+  .option.is-pressed { transform: scale(0.965); background: var(--panel-hi); }
+
+  /* The release. A back-eased pop that overshoots 1.0 slightly and settles,
+     which is what reads as "haptic" without any haptics. */
+  @keyframes bounce-back {
+    0%   { transform: scale(0.965); }
+    100% { transform: scale(1); }
+  }
+  .option.is-releasing { animation: bounce-back 180ms var(--ease-back); }
+
+  .option .ico {
+    flex: none; width: 40px; height: 40px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 19px;
+    background: linear-gradient(145deg, rgb(59 130 246 / 0.3), rgb(29 78 216 / 0.25));
+  }
+  .option b { display: block; font-size: 15px; }
+  .option small { color: var(--ink-dim); font-size: 13px; }
+  .option .chev { margin-left: auto; color: var(--ink-dim); }
+
+  .back {
+    appearance: none; background: none; border: 0; color: var(--ink-dim);
+    font: inherit; font-size: 14px; cursor: pointer; padding: 6px 0;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .back:hover { color: var(--ink); }
+
+  .done {
+    text-align: center; padding: 12px 0 4px;
+  }
+  .done .tick {
+    width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 26px;
+    background: rgb(52 211 153 / 0.15); color: var(--ok);
+    animation: pop 320ms var(--ease-back);
+  }
+  @keyframes pop { from { transform: scale(0.6); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+  .summary {
+    margin-top: 14px; padding: 14px; border-radius: 12px;
+    background: var(--panel); border: 1px solid var(--line);
+    display: grid; gap: 8px; text-align: left; font-size: 14px;
+  }
+  .summary div { display: flex; justify-content: space-between; gap: 12px; }
+  .summary span:first-child { color: var(--ink-dim); }
+
+  .restart {
+    margin-top: 16px; width: 100%; padding: 13px;
+    border: 0; border-radius: 12px; cursor: pointer;
+    /* white on --brand is only 3.68:1; the darker stop clears AA */
+    background: var(--brand-dim); color: #fff; font: inherit; font-weight: 600;
+    transition: transform var(--t-press) var(--ease-out), background var(--t-press) linear;
+    touch-action: manipulation;
+  }
+  .restart:active { transform: scale(0.97); }
+
+  /*
+   * Someone who has asked their device for less motion gets the same
+   * wizard with the movement removed — steps swap instantly, the press
+   * feedback becomes a colour change rather than a scale.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .viewport { transition: none; }
+    .step.is-leaving, .step.is-entering { animation: none; opacity: 1; transform: none; }
+    .step.is-leaving { display: none; }
+    .option { transition: background 1ms linear; }
+    .option.is-pressed { transform: none; }
+    .option.is-releasing { animation: none; }
+    .done .tick { animation: none; }
+    .restart { transition: none; }
+    .restart:active { transform: none; }
+    .crumb i { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wizard">
+  <header>
+    <div class="crumbs" id="crumbs" aria-hidden="true">
+      <div class="crumb active"><i></i></div>
+      <div class="crumb"><i></i></div>
+      <div class="crumb"><i></i></div>
+    </div>
+    <h1 id="wz-title">What&rsquo;s wrong with it?</h1>
+    <p class="sub" id="wz-sub">Step 1 of 3 &middot; takes about 20 seconds</p>
+  </header>
+
+  <div class="viewport" id="viewport">
+    <!-- Steps are rendered by JS so the structure stays in one place. -->
+  </div>
+</div>
+
+<script src="./repair-wizard.js" defer></script>
+</body>
+</html>

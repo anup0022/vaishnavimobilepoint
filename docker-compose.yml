@@ -1,0 +1,29 @@
+services:
+  vaishnavi:
+    build: .
+    image: vaishnavi-mobile-shop:latest
+    container_name: vaishnavi-mobile-shop
+    ports:
+      - "8470:8470"
+    environment:
+      PORT: "8470"
+      # Set this to your domain once it is live, e.g. https://vaishnavimobilepoint.in
+      # It drives the canonical URL, sitemap.xml and the Google local-business markup.
+      SITE_URL: "${SITE_URL:-}"
+      NODE_ENV: production
+      # Change these before putting the site anywhere other than this laptop.
+      # Read from .env, which is gitignored. The app refuses to start in
+      # production if SESSION_SECRET is missing, short or a known placeholder.
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET in .env - run: openssl rand -hex 32}"
+      ADMIN_USERNAME: "${ADMIN_USERNAME:-admin}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}"
+      TRUST_PROXY: "${TRUST_PROXY:-}"
+      ADMIN_NAME: "Store Owner"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    # Defence in depth: the process does not need to write anywhere except its
+    # two bind mounts, and does not need to gain privileges.
+    security_opt:
+      - no-new-privileges:true

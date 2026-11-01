@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Specs scroll — GSAP ScrollTrigger demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #0b1120;
+    --bg-soft:   #111a2e;
+    --ink:       #f3f6fc;
+    --ink-dim:   #93a1bb;
+    --brand:     #3b82f6;
+    --brand-dim: #1d4ed8;
+    --line:      rgb(255 255 255 / 0.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .wrap { max-width: 1120px; margin-inline: auto; padding-inline: 16px; }
+
+  .intro, .outro {
+    min-height: 70vh;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    gap: 12px;
+  }
+  .intro h1 { font-size: clamp(28px, 6vw, 52px); margin: 0; letter-spacing: -0.03em; }
+  .muted { color: var(--ink-dim); margin: 0; max-width: 46ch; }
+  .hint {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--ink-dim); font-size: 14px; margin-top: 8px;
+  }
+  .hint::after {
+    content: ''; width: 1px; height: 28px;
+    background: linear-gradient(var(--ink-dim), transparent);
+    animation: drop 1.6s ease-in-out infinite;
+  }
+  @keyframes drop { 0%,100% { transform: scaleY(0.4); opacity: .4 } 50% { transform: scaleY(1); opacity: 1 } }
+
+  /* ---------------------------------------------------------------- *
+   * The specs section.
+   *
+   * The phone is pinned for the length of the scrub so the rotation
+   * reads as one continuous movement rather than a jump. The grid
+   * collapses to one column on phones, where the phone sits ABOVE the
+   * bullets — on a small screen you want the thing being described in
+   * view while the descriptions arrive.
+   * ---------------------------------------------------------------- */
+  #specs {
+    position: relative;
+    padding: 12vh 0;
+    background:
+      radial-gradient(60% 50% at 20% 10%, rgb(59 130 246 / 0.14), transparent 60%),
+      radial-gradient(50% 40% at 85% 80%, rgb(29 78 216 / 0.12), transparent 60%),
+      var(--bg-soft);
+    border-block: 1px solid var(--line);
+  }
+
+  .specs-grid {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: 1fr;
+    align-items: center;
+  }
+  @media (min-width: 880px) {
+    .specs-grid { grid-template-columns: 0.95fr 1.05fr; gap: 64px; }
+  }
+
+  .stage {
+    display: grid;
+    place-items: center;
+    /* Belt and braces: the image carries a transform and therefore paints
+       above the in-flow text. If its ratio is ever unexpected, clip it here
+       rather than letting it cover the copy. */
+    overflow: hidden;
+    /* A fixed aspect box means the rotating phone never changes the
+       height of the page — no layout shift, no reflow during scroll. */
+    aspect-ratio: 4 / 3;
+    max-height: 48vh;
+  }
+
+  .phone {
+    width: min(86%, 380px);
+    /*
+     * Without `height: auto` the height="..." attribute stays in force as a
+     * presentational hint. The CSS width overrode the width hint but nothing
+     * overrode the height, so the image rendered at a fixed 1125px tall and
+     * painted straight over the copy. The declare-both-dimensions idiom only
+     * prevents layout shift if the CSS hands the height back.
+     */
+    height: auto;
+    border-radius: 14px;
+    display: block;
+    /* The element is promoted to its own layer up front. Without this the
+       browser re-rasterises the image on the first frame of the scrub and
+       you see a hitch exactly when the animation starts. */
+    transform: translate3d(0, 0, 0);
+    box-shadow:
+      0 30px 60px -20px rgb(0 0 0 / 0.65),
+      0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--brand);
+    margin: 0 0 14px;
+  }
+  #specs h2 {
+    font-size: clamp(26px, 5vw, 42px);
+    line-height: 1.12; letter-spacing: -0.03em;
+    margin: 0 0 28px;
+  }
+
+  .bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .bullet {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgb(255 255 255 / 0.03);
+    /* Starting state lives in CSS, not JS: if the script fails to load the
+       content must still be readable, so GSAP sets these to their visible
+       values rather than the page depending on JS to reveal them. */
+  }
+  .bullet .dot {
+    flex: none; width: 34px; height: 34px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: linear-gradient(145deg, var(--brand), var(--brand-dim));
+    font-size: 15px;
+  }
+  .bullet b { display: block; font-size: 16px; }
+  .bullet span { color: var(--ink-dim); font-size: 14px; }
+
+  .note {
+    margin-top: 28px; padding: 14px 16px;
+    border-left: 2px solid var(--brand);
+    color: var(--ink-dim); font-size: 14px;
+  }
+
+  /* No-JS and reduced-motion both need the content plainly visible. */
+  .no-js .bullet, .no-js .phone { opacity: 1 !important; transform: none !important; }
+
+  /*
+   * The JS handles GSAP via matchMedia, but the CSS had its own motion the JS
+   * never touched: the scroll hint animates forever, and html{scroll-behavior:
+   * smooth} hijacks every jump. Both need turning off here.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .hint::after { animation: none; opacity: 0.6; }
+    .phone, .bullet { opacity: 1 !important; transform: none !important; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+</style>
+</head>
+<body class="no-js">
+
+<div class="wrap intro">
+  <h1>Scroll down to the specs</h1>
+  <p class="muted">The phone rotates and grows as the section crosses the viewport. The bullets arrive one after another, not all at once.</p>
+  <span class="hint">keep scrolling</span>
+</div>
+
+<section id="specs">
+  <div class="wrap specs-grid">
+
+    <div class="stage">
+      <!-- Swap this for your own mockup. Width/height are declared so the
+           browser reserves the space before the image arrives. -->
+      <img
+        class="phone"
+        src="https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=900&q=80"
+        alt="Samsung Galaxy S21+ 5G, rear view, beside its retail box"
+        width="900" height="600"
+        decoding="async"
+        fetchpriority="low"
+      />
+    </div>
+
+    <div class="copy">
+      <p class="eyebrow">Galaxy S21+ 5G</p>
+      <h2>Everything you want to know, before you walk in.</h2>
+
+      <ul class="bullets">
+        <li class="bullet"><span class="dot">◧</span><div><b>6.7&quot; OLED Display</b><span>120Hz, 1300 nits peak</span></div></li>
+        <li class="bullet"><span class="dot">◉</span><div><b>64MP Main Camera</b><span>OIS, 3x hybrid zoom</span></div></li>
+        <li class="bullet"><span class="dot">⚡</span><div><b>4800mAh Battery</b><span>25W wired charging</span></div></li>
+        <li class="bullet"><span class="dot">⬡</span><div><b>Exynos 2100</b><span>8GB RAM, 256GB storage</span></div></li>
+        <li class="bullet"><span class="dot">✓</span><div><b>1 Year Warranty</b><span>Samsung India, billed with GST</span></div></li>
+      </ul>
+
+      <p class="note">
+        On a phone the rotation is halved and the pin is dropped — a pinned
+        section fights the native scroll on touch, and a 45&deg; tilt on a
+        340px-wide image reads as a mistake rather than a flourish.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<div class="wrap outro">
+  <h1>That&rsquo;s the section</h1>
+  <p class="muted">Scroll back up — the animation reverses, because it is tied to scroll position rather than fired once.</p>
+</div>
+
+<script src="./vendor/gsap.min.js"></script>
+<script src="./vendor/ScrollTrigger.min.js"></script>
+<script src="./specs-scroll.js" defer></script>
+</body>
+</html>

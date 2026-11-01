@@ -1,0 +1,132 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * Three palettes, three type systems, one stylesheet.
+ *
+ * Each direction gets its own token prefix rather than a scoped theme
+ * override, so a utility always resolves to the same colour no matter
+ * where it is used and the three concepts can sit side by side on the
+ * comparison page without fighting each other.
+ *
+ *   c-*  Counter   light, editorial, near-monochrome
+ *   b-*  Bench     dark studio, warm key + cold rim
+ *   d-*  Dukaan    bright retail, electric blue + marigold
+ * ------------------------------------------------------------------ */
+
+@theme {
+  /* --- Counter --- */
+  --color-c-paper: #fbfbfd;
+  --color-c-ink: #08090b;
+  --color-c-graphite: #6e7079;
+  --color-c-hair: rgb(8 9 11 / 0.1);
+  --color-c-hair-inv: rgb(255 255 255 / 0.14);
+  --color-c-accent: #0b4791;
+
+  /* --- Bench --- */
+  --color-b-obsidian: #0a0c10;
+  --color-b-slate: #14181f;
+  --color-b-edge: #222835;
+  --color-b-key: #f0a54a;
+  --color-b-rim: #2a7de1;
+  --color-b-signal: #35e0a1;
+  --color-b-mist: #8b94a6;
+
+  /* --- Dukaan --- */
+  --color-d-canvas: #f6f7fb;
+  --color-d-tile: #ffffff;
+  --color-d-electric: #1557d0;
+  --color-d-marigold: #f6a609;
+  --color-d-jade: #0e8a5f;
+  --color-d-ink: #111520;
+  --color-d-mute: #5a6170;
+  --color-d-line: rgb(17 21 32 / 0.1);
+
+  --font-counter: 'Inter Tight', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-bench: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-dukaan: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-deva: 'Noto Sans Devanagari', 'Plus Jakarta Sans', sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  a,
+  button,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+  button {
+    font-family: inherit;
+  }
+}
+
+/* The shop's own catalogue photography is mixed aspect; this keeps a
+   dropped request from collapsing a layout slot to zero height. */
+.ph {
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.05) 25%, rgb(0 0 0 / 0.1) 50%, rgb(0 0 0 / 0.05) 75%);
+  background-size: 200% 100%;
+  animation: ph 1.4s linear infinite;
+}
+@keyframes ph {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.no-sb::-webkit-scrollbar {
+  display: none;
+}
+.no-sb {
+  scrollbar-width: none;
+}
+
+/* Counter: the page theme flips per chapter. Transitioning the colour
+   rather than swapping it keeps the inversion from strobing. */
+.counter-root {
+  transition: background-color 600ms ease, color 600ms ease;
+}
+
+/* Bench: a single specular band swept across a card on hover. */
+.spec-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.13) 50%, transparent 62%);
+  transform: translateX(-100%);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .spec-sweep:hover::after {
+    transform: translateX(100%);
+  }
+}
+
+/* Reduced motion means no movement, not faster movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
