@@ -10,6 +10,7 @@ import SmartImage from '@/components/SmartImage'
 import Reveal from '@/components/Reveal'
 import Counter from '@/components/Counter'
 import Magnetic from '@/components/Magnetic'
+import TalkToUs, { formsOffline } from '@/components/TalkToUs'
 
 const SERVICES = [
   'New Phone Purchase', 'Screen Replacement', 'Battery Replacement', 'Charging Port Repair',
@@ -198,6 +199,15 @@ export default function Feedback() {
 
         {/* leave a review */}
         <Reveal delay={0.1}>
+          {formsOffline ? (
+            <div className="mt-24">
+              <TalkToUs
+                title="Tell us how it went"
+                body="Send your experience to us on WhatsApp and we will add it to this page. Bought a phone or had something repaired? Other people in Ranchi find it useful."
+                message="Hi! I would like to leave a review: "
+              />
+            </div>
+          ) : (
           <div className="mt-24 rounded-[2rem] border border-ink-700 bg-ink-900 lift p-8 backdrop-blur sm:p-12">
             {submitted ? (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
@@ -320,6 +330,7 @@ export default function Feedback() {
               </>
             )}
           </div>
+          )}
         </Reveal>
       </div>
     </div>

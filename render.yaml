@@ -6,10 +6,15 @@
 # photos on the local filesystem (SQLite + uploads/). Render's *free* instances
 # have an ephemeral filesystem: everything under DATA_DIR and UPLOAD_DIR is
 # wiped on every deploy, restart and 15-minute idle spin-down, and the catalogue
-# re-seeds itself from server/db.js on the next boot. The storefront therefore
-# looks correct on free, but nothing a customer or staff member *writes*
-# survives. Persistent disks require a paid instance — uncomment the `disk`
-# block and switch `plan` to `starter` to keep the data.
+# re-seeds itself from server/db.js on the next boot.
+#
+# EPHEMERAL=true below is what makes that safe rather than silently lossy: the
+# booking, contact and review endpoints return 503 and the storefront offers
+# WhatsApp and the phone number in their place, so no customer is ever handed a
+# ticket number for a job the shop will never see.
+#
+# To take the site fully live: switch `plan` to starter, uncomment the `disk`
+# block, and delete the EPHEMERAL variable. The forms come back on their own.
 
 services:
   - type: web
@@ -24,6 +29,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+      # Remove this once the service has a persistent disk.
+      - key: EPHEMERAL
+        value: "true"
 
       # Drives canonical URLs, robots.txt and sitemap.xml.
       - key: SITE_URL

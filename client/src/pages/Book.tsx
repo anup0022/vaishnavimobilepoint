@@ -11,6 +11,7 @@ import { useSettings } from '@/lib/useSettings'
 import CaptchaBox from '@/components/CaptchaBox'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
+import TalkToUs, { formsOffline } from '@/components/TalkToUs'
 
 const BRANDS = ['Apple', 'Samsung', 'Xiaomi', 'realme', 'vivo', 'OPPO', 'OnePlus', 'Nothing', 'Motorola', 'Google', 'Nokia', 'Other']
 
@@ -163,10 +164,22 @@ export default function Book() {
             Book a <span className="text-brand-600">repair</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-mist-400">
-            Three short steps. You get a ticket number instantly and can follow every stage of the repair online.
+            {formsOffline
+              ? 'Send us the make, model and what went wrong. We reply the same day with an estimate.'
+              : 'Three short steps. You get a ticket number instantly and can follow every stage of the repair online.'}
           </p>
         </Reveal>
 
+        {formsOffline ? (
+          <Reveal delay={0.1} className="mt-12">
+            <TalkToUs
+              title="Book your repair on WhatsApp"
+              body="The quickest way to reach the bench. Send your device details and a photo of the damage, and we will come back with a price before you travel."
+              message="Hi! I would like to book a repair. Device: "
+            />
+          </Reveal>
+        ) : (
+        <>
         {/* step rail */}
         <Reveal delay={0.1}>
           <ol className="mt-12 flex items-center justify-center gap-3 sm:gap-6">
@@ -364,6 +377,8 @@ export default function Book() {
             </div>
           </form>
         </Reveal>
+        </>
+        )}
 
         <Reveal delay={0.24}>
           <p className="mt-8 text-center text-sm text-mist-500">

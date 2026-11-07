@@ -1,8 +1,24 @@
 import express from 'express'
 import { db, allSettings, STATUS_FLOW, STATUS_LABELS } from '../db.js'
-import { createCaptcha, verifyCaptcha, rateLimit, ticketCode, normalisePhone } from '../util.js'
+import { createCaptcha, verifyCaptcha, rateLimit, ticketCode, normalisePhone, EPHEMERAL } from '../util.js'
 
 export const publicRouter = express.Router()
+
+/* ------------------------------------------------------------------ *
+ * Ephemeral hosting
+ *
+ * Bookings, enquiries and reviews are written to SQLite and nowhere
+ * else — there is no mail or webhook behind them. On a host whose
+ * filesystem does not survive a restart, accepting those writes is
+ * worse than refusing them: the customer gets a ticket number, and the
+ * shop never sees the job. See EPHEMERAL in util.js.
+ * ------------------------------------------------------------------ */
+function rejectIfEphemeral(_req, res, next) {
+  if (!EPHEMERAL) return next()
+  res.status(503).json({
+    error: 'Online forms are switched off right now. Please WhatsApp or call the shop — we answer the same day.',
+  })
+}
 
 /* ------------------------------------------------------------------ *
  * The public catalogue deliberately never returns stock_qty. Shoppers
@@ -120,7 +136,7 @@ publicRouter.get('/feedback', (_req, res) => {
   })
 })
 
-publicRouter.post('/feedback', rateLimit({ key: 'feedback', max: 5, windowMs: 10 * 60_000 }), (req, res) => {
+publicRouter.post('/feedback', rejectIfEphemeral, rateLimit({ key: 'feedback', max: 5, windowMs: 10 * 60_000 }), (req, res) => {
   const { name, city, rating, title, message, service, captchaId, captchaText } = req.body || {}
 
   if (!verifyCaptcha(captchaId, captchaText)) {
@@ -149,7 +165,7 @@ publicRouter.post('/feedback', rateLimit({ key: 'feedback', max: 5, windowMs: 10
 
 /* ----------------------------- contact ----------------------------- */
 
-publicRouter.post('/contact', rateLimit({ key: 'contact', max: 5, windowMs: 10 * 60_000 }), (req, res) => {
+publicRouter.post('/contact', rejectIfEphemeral, rateLimit({ key: 'contact', max: 5, windowMs: 10 * 60_000 }), (req, res) => {
   const { name, phone, email, subject, message, captchaId, captchaText } = req.body || {}
 
   if (!verifyCaptcha(captchaId, captchaText)) {
@@ -188,7 +204,7 @@ publicRouter.get('/service-options', (_req, res) => {
   res.json({ issueTypes: ISSUE_TYPES, statusFlow: STATUS_FLOW, statusLabels: STATUS_LABELS })
 })
 
-publicRouter.post('/bookings', rateLimit({ key: 'booking', max: 6, windowMs: 10 * 60_000 }), (req, res) => {
+publicRouter.post('/bookings', rejectIfEphemeral, rateLimit({ key: 'booking', max: 6, windowMs: 10 * 60_000 }), (req, res) => {
   const {
     name, phone, email, deviceBrand, deviceModel, imei,
     issueType, issueDesc, preferredDate, captchaId, captchaText,

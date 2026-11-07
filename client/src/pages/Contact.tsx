@@ -10,6 +10,7 @@ import { useSettings, fullAddress, whatsappLink, mapEmbedUrl, mapDirectionsUrl }
 import CaptchaBox from '@/components/CaptchaBox'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
+import TalkToUs, { formsOffline } from '@/components/TalkToUs'
 
 const SUBJECTS = [
   'General enquiry', 'Product availability & price', 'Repair enquiry', 'Bulk / corporate order',
@@ -156,6 +157,13 @@ export default function Contact() {
 
           {/* message form */}
           <Reveal direction="left">
+            {formsOffline ? (
+              <TalkToUs
+                title="Message us on WhatsApp"
+                body="The fastest way to reach the counter. Ask about a price, a part or whether we have something in stock — we usually reply the same working day."
+                message="Hi! I have a question about "
+              />
+            ) : (
             <div className="rounded-[2rem] border border-ink-700 bg-ink-900 lift p-8 backdrop-blur sm:p-10">
               {sent ? (
                 <motion.div
@@ -249,6 +257,7 @@ export default function Contact() {
                 </>
               )}
             </div>
+            )}
           </Reveal>
         </div>
       </div>

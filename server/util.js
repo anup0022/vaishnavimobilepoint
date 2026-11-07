@@ -1,5 +1,14 @@
 import crypto from 'node:crypto'
 
+/**
+ * The host's filesystem does not survive a restart (a Render free instance
+ * spins down after 15 minutes idle). Bookings, enquiries and reviews are
+ * written to SQLite and nowhere else, so when this is set those writes are
+ * refused and the storefront offers WhatsApp and the phone number instead.
+ * Unset it the moment the service has a persistent disk.
+ */
+export const EPHEMERAL = /^(1|true|yes)$/i.test(process.env.EPHEMERAL || '')
+
 /* ------------------------------------------------------------------ *
  * Passwords — scrypt from node:crypto, no native dependency needed.
  * ------------------------------------------------------------------ */

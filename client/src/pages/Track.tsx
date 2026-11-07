@@ -13,6 +13,7 @@ import CaptchaBox from '@/components/CaptchaBox'
 import StatusBadge, { STATUS_META } from '@/components/StatusBadge'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
+import TalkToUs, { formsOffline } from '@/components/TalkToUs'
 
 interface TrackedBooking {
   ticket: string
@@ -92,11 +93,22 @@ export default function Track() {
             Track your <span className="text-brand-600">repair</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-mist-400">
-            Enter the ticket number from your booking along with the mobile number you gave us. Both must match before
-            we show any details.
+            {formsOffline
+              ? 'Send us your ticket number or the mobile number you gave us, and we will tell you exactly where your device is.'
+              : 'Enter the ticket number from your booking along with the mobile number you gave us. Both must match before we show any details.'}
           </p>
         </Reveal>
 
+        {formsOffline ? (
+          <Reveal delay={0.1} className="mt-12">
+            <TalkToUs
+              title="Ask us for an update"
+              body="We will check the bench and come straight back to you with the stage your repair is at and when it will be ready."
+              message="Hi! Could I get an update on my repair? Ticket number: "
+            />
+          </Reveal>
+        ) : (
+        <>
         <AnimatePresence mode="wait">
           {!result ? (
             <motion.form
@@ -326,6 +338,8 @@ export default function Track() {
             </motion.div>
           )}
         </AnimatePresence>
+        </>
+        )}
       </div>
     </div>
   )

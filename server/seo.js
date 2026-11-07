@@ -1,4 +1,5 @@
 import { allSettings } from './db.js'
+import { EPHEMERAL } from './util.js'
 
 /**
  * Local-search plumbing: robots.txt, sitemap.xml and LocalBusiness JSON-LD.
@@ -154,7 +155,11 @@ export function injectSeo(html, req) {
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:image" content="${escapeXml(banner)}" />`,
     `<script type="application/ld+json">${localBusinessJsonLd(req)}</script>`,
-  ].join('\n    ')
+    // A meta tag rather than an inline script: script-src is 'self' with no
+    // nonce, and the flag is not worth loosening the CSP for. Present in the
+    // shell means the storefront never flashes a form it cannot submit.
+    EPHEMERAL ? `<meta name="vmp-forms" content="offline" />` : '',
+  ].filter(Boolean).join('\n    ')
   return html.replace('</head>', `    ${tags}\n  </head>`)
 }
 
