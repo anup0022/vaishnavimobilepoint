@@ -77,7 +77,7 @@ export default function ProductDetail() {
       <div className="relative mx-auto max-w-7xl">
         <Link
           to="/products"
-          className="mb-10 inline-flex items-center gap-2 text-sm font-medium text-mist-400 transition hover:text-mist-50"
+          className="mb-10 inline-flex items-center gap-2 text-sm font-medium text-mist-400 transition hover:text-brand-700"
         >
           <ArrowLeft size={16} /> Back to catalogue
         </Link>
@@ -284,7 +284,7 @@ function OrbitGallery({ product }: { product: Product }) {
         </AnimatePresence>
 
         {product.discount > 0 && (
-          <span className="readout absolute left-5 top-5 rounded-lg bg-key px-3 py-1.5 text-sm font-bold text-ink-950">
+          <span className="readout absolute left-5 top-5 rounded-lg bg-key px-3 py-1.5 text-sm font-bold text-key-ink">
             Save {product.discount}%
           </span>
         )}

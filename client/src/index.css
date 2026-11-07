@@ -33,7 +33,21 @@
 
   /* The cold rim light. Inverted against the old light theme: 700 is now
      the *lightest* step, because accent text on a dark surface has to
-     rise off the page rather than sink into it. */
+     rise off the page rather than sink into it.
+
+     These two ramps carry one role each, and mixing them is what made the
+     site read as four different products:
+
+       brand-600   every interactive fill, border and ring
+       brand-700   every interactive label, icon and link
+       key         emphasis only — the primary button, prices, highlights
+                   inside a heading. Never a hover or focus colour.
+       success /
+       warn /
+       danger      status and destructive actions only.
+
+     brand-500 exists for the CMS charts; nothing interactive should use
+     it, or the same control ends up two different blues on two pages. */
   --color-brand-50:  #0e1b2b;
   --color-brand-100: #15293f;
   --color-brand-500: #4f9bf0;
@@ -43,6 +57,10 @@
   /* The warm key light. The signature of this direction. */
   --color-key:     #f0a54a;
   --color-key-dim: #b87a2e;
+  /* Type that sits *on* the key fill. Fixed, because --color-key is the
+     one surface that does not flip with the light homepage theme — use
+     ink-950 here and the label turns near-white on amber at 1.7:1. */
+  --color-key-ink: #0a0c10;
 
   --color-success: #35e0a1;
   --color-warn:    #f0a54a;
@@ -110,7 +128,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-key);
+    outline: 2px solid var(--color-brand-600);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -216,7 +234,7 @@
     border-radius: 0.7rem;
     padding: 0.8rem 1.5rem;
     font-weight: 700;
-    color: #0a0c10;
+    color: var(--color-key-ink);
     background: var(--color-key);
     box-shadow: 0 2px 18px -4px rgb(240 165 74 / 0.45);
     transition: filter 0.18s ease, box-shadow 0.18s ease;
@@ -258,8 +276,8 @@
   .field::placeholder { color: var(--color-mist-500); }
   .field:focus {
     outline: none;
-    border-color: var(--color-key);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-key) 18%, transparent);
+    border-color: var(--color-brand-600);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-brand-600) 22%, transparent);
   }
 
   .label {
@@ -393,6 +411,206 @@
     height: auto;
     min-height: 0;
     overflow: visible;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Tilt cards
+ *
+ * A deck dealt out while the stage is held still. Every card hangs off
+ * the top edge of a 250vw circle whose centre sits far below the fold,
+ * so rotating that circle a few degrees walks the card along an arc flat
+ * enough to read as a slide — and the card carries a second copy of the
+ * same rotation, which is where the tilt comes from. One circle per card
+ * is what makes it a deck fanning out rather than four separate entries.
+ *
+ * The fan is gated on the same query useScenes uses, so the geometry
+ * below only ever exists when GSAP is actually going to be fetched. Its
+ * resting state is the *end* of the animation, not the start: a scene
+ * whose tween never arrives still shows a readable, fanned deck.
+ * ------------------------------------------------------------------ */
+
+.tilt-cards {
+  position: relative;
+  padding-block: 4rem;
+  scroll-margin-top: 5rem;
+}
+
+.tilt-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl2);
+  background: var(--tilt-bg);
+  color: var(--tilt-fg);
+}
+
+/* :where() keeps these at zero specificity so a utility can still win.
+   They beat the base reset regardless, because that one is layered. */
+.tilt-card :where(h3) {
+  color: inherit;
+}
+
+.tilt-card :where(p) {
+  color: color-mix(in oklab, var(--tilt-fg) 84%, var(--tilt-bg));
+}
+
+/* Each card is a flat colour rather than a panel, so the deck still
+   separates once the cards overlap and the borders stack up. */
+.tilt-tone-brand { --tilt-bg: #17568f; --tilt-fg: #f4f8fd; }
+.tilt-tone-key   { --tilt-bg: #f0a54a; --tilt-fg: #16120a; }
+.tilt-tone-deep  { --tilt-bg: #14181f; --tilt-fg: #f2f5fa; }
+.tilt-tone-mint  { --tilt-bg: #35e0a1; --tilt-fg: #06241a; }
+
+.tilt-card_icon {
+  display: inline-flex;
+  height: 3.25rem;
+  width: 3.25rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--tilt-fg) 38%, transparent);
+}
+
+.tilt-card_meta {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  border-top: 1px solid color-mix(in oklab, var(--tilt-fg) 24%, transparent);
+  padding-top: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.tilt-card_meta span:last-child {
+  color: color-mix(in oklab, var(--tilt-fg) 72%, var(--tilt-bg));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+}
+
+.tilt-cards_hint {
+  display: none;
+}
+
+.tilt-cards_tail {
+  padding-top: 2.5rem;
+}
+
+/* Fallback, and the layout the markup is authored in: a plain grid, in the
+   same container every other section on the page uses. */
+.tilt-cards_stage {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding: 2.5rem 1rem 0;
+}
+
+@media (min-width: 640px) {
+  .tilt-cards_stage {
+    padding-inline: 1.5rem;
+  }
+}
+
+.tilt-cards_deck {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  /* clip, never hidden — `hidden` would make this the scroll container
+     and the sticky stage inside it would have nothing left to stick to. */
+  .tilt-cards {
+    overflow: clip;
+    padding-block: 0;
+  }
+
+  .tilt-cards_runway {
+    position: relative;
+    height: calc(100vh + var(--tilt-count, 4) * 75vh);
+  }
+
+  /* Sits behind the deck and scrolls out with it, so the heading is read
+     first and then handed over to the cards. */
+  .tilt-cards_headline {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 1;
+    height: 100%;
+  }
+
+  .tilt-cards_headline-inner {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ScrollTrigger pins this; sticky is the resting state it takes over
+     from, which covers the frames before the library has loaded. Inert,
+     because a card mid-arc is scenery, not a target. */
+  .tilt-cards_stage {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 100vh;
+    max-width: none;
+    overflow: clip;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .tilt-cards_deck {
+    position: relative;
+    display: block;
+    height: 100vh;
+    gap: 0;
+  }
+
+  .tilt-cards_orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 250vw;
+    width: 250vw;
+    transform: translateX(-50%) rotate(var(--tilt-rot, 0deg));
+    will-change: transform;
+  }
+
+  .tilt-card {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: auto;
+    width: clamp(17rem, 26vw, 23rem);
+    aspect-ratio: 0.72;
+    padding: 1.75rem 1.5rem;
+    transform: translate(-50%, -50%) rotate(var(--tilt-rot, 0deg));
+    will-change: transform;
+  }
+
+  .tilt-cards_hint {
+    display: block;
+  }
+
+  /* The dealt deck only fills the middle of the stage. The tail rides up
+     into the quiet band under it, so the list follows the cards instead
+     of trailing a blank screen behind them. */
+  .tilt-cards_tail {
+    position: relative;
+    margin-top: -12vh;
+    padding-top: 0;
   }
 }
 

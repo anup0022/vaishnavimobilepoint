@@ -43,7 +43,7 @@ export default function Modal({ children, onClose, title, wide }: Props) {
           <h2 className="font-display text-xl font-bold">{title}</h2>
           <button
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-700 text-mist-400 transition hover:text-mist-50"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-700 text-mist-400 transition hover:border-brand-600/50 hover:text-brand-700"
             aria-label="Close"
           >
             <X size={17} />

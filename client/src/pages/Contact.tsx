@@ -74,14 +74,14 @@ export default function Contact() {
               <a
                 href={card.href}
                 {...(card.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
-                className="group flex h-full flex-col gap-4 rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] hover:border-brand-700/40"
+                className="group flex h-full flex-col gap-4 rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] hover:border-brand-600/45"
               >
                 <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
                   <card.icon size={21} />
                 </span>
                 <div>
                   <div className="text-xs uppercase tracking-wider text-mist-500">{card.label}</div>
-                  <div className="mt-1 font-semibold transition-colors group-hover:text-brand-600">{card.value}</div>
+                  <div className="mt-1 font-semibold transition-colors group-hover:text-brand-700">{card.value}</div>
                 </div>
               </a>
             </Reveal>
@@ -118,11 +118,11 @@ export default function Contact() {
                     <Phone size={19} className="mt-0.5 shrink-0 text-brand-700" />
                     <div>
                       <div className="mb-1 font-semibold text-mist-50">Phone</div>
-                      <a href={phoneHref(settings.phone_primary)} className="block text-mist-400 hover:text-mist-50">
+                      <a href={phoneHref(settings.phone_primary)} className="block text-mist-400 transition hover:text-brand-700">
                         {settings.phone_primary} <span className="text-xs text-mist-500">(sales)</span>
                       </a>
                       {settings.phone_secondary && (
-                        <a href={phoneHref(settings.phone_secondary)} className="block text-mist-400 hover:text-mist-50">
+                        <a href={phoneHref(settings.phone_secondary)} className="block text-mist-400 transition hover:text-brand-700">
                           {settings.phone_secondary} <span className="text-xs text-mist-500">(service)</span>
                         </a>
                       )}

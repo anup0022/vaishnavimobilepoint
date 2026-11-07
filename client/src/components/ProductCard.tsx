@@ -24,7 +24,7 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
       <TiltCard intensity={6}>
         <Link
           to={`/products/${product.slug}`}
-          className="card-sheen group relative active:scale-[0.985] flex h-full flex-col overflow-hidden rounded-3xl border border-ink-700 bg-ink-850 lift transition-[border-color,box-shadow] duration-300 hover:border-brand-600/55 hover:shadow-[0_0_0_1px_rgb(42_125_225/0.18),0_26px_60px_-28px_rgb(42_125_225/0.5)]"
+          className="card-sheen group relative active:scale-[0.985] flex h-full flex-col overflow-hidden rounded-3xl border border-ink-700 bg-ink-850 lift transition-[border-color,box-shadow] duration-300 hover:border-brand-600/45 hover:shadow-[0_0_0_1px_rgb(42_125_225/0.18),0_26px_60px_-28px_rgb(42_125_225/0.5)]"
         >
           <div className="relative aspect-square overflow-hidden bg-ink-950">
             <SmartImage
@@ -37,7 +37,7 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ink-850 to-transparent" />
 
             {product.discount > 0 && (
-              <span className="readout absolute left-3 top-3 rounded-lg bg-key px-2.5 py-1 text-xs font-bold text-ink-950">
+              <span className="readout absolute left-3 top-3 rounded-lg bg-key px-2.5 py-1 text-xs font-bold text-key-ink">
                 −{product.discount}%
               </span>
             )}
@@ -67,7 +67,7 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
                   <div className="readout text-sm text-mist-500 line-through">{money(product.mrp)}</div>
                 )}
               </div>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink-700 bg-ink-800 text-mist-400 transition-all duration-300 group-hover:border-transparent group-hover:bg-key group-hover:text-ink-950">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink-700 bg-ink-800 text-mist-400 transition-all duration-300 group-hover:border-transparent group-hover:bg-brand-600 group-hover:text-white">
                 <ArrowUpRight size={18} />
               </span>
             </div>

@@ -107,7 +107,7 @@ export default function Bookings() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.3) }}
-              className="flex flex-col rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-700/40"
+              className="flex flex-col rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-600/45"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
@@ -347,7 +347,7 @@ function Detail({
     <div>
       <div className="mb-1 text-xs uppercase tracking-wider text-mist-500">{label}</div>
       {href ? (
-        <a href={href} className="hover:text-brand-600">
+        <a href={href} className="transition hover:text-brand-700">
           {content}
         </a>
       ) : (

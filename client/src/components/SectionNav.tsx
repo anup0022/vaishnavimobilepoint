@@ -22,7 +22,10 @@ export default function SectionNav({ sections }: { sections: SectionDef[] }) {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
         if (visible) setActive(visible.target.id)
       },
-      { threshold: [0.25, 0.5, 0.75], rootMargin: '-80px 0px -40% 0px' },
+      // The lowest step is there for the pinned repair bench: it is several
+      // viewports tall, so it can never cover more than a tenth of itself
+      // and would otherwise cross no threshold at all.
+      { threshold: [0.05, 0.25, 0.5, 0.75], rootMargin: '-80px 0px -40% 0px' },
     )
 
     for (const section of sections) {

@@ -49,7 +49,7 @@ export default function Nav() {
   return (
     <>
       {settings.announcement && (
-        <div className="relative z-[90] overflow-hidden bg-key py-2 text-center text-[13px] font-bold text-ink-950">
+        <div className="relative z-[90] overflow-hidden bg-key py-2 text-center text-[13px] font-bold text-key-ink">
           <div className="flex items-center justify-center gap-2 px-4">
             <Megaphone size={14} className="shrink-0" />
             <span className="truncate">{settings.announcement}</span>
@@ -67,7 +67,7 @@ export default function Nav() {
           }`}
         >
           <Link to="/" className="group flex shrink-0 items-center gap-3">
-            <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-key text-xl font-extrabold text-ink-950 shadow-lg shadow-key/25 transition-transform duration-300 group-hover:scale-105">
+            <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-key text-xl font-extrabold text-key-ink shadow-lg shadow-key/25 transition-transform duration-300 group-hover:scale-105">
               V
             </span>
             <span className="hidden leading-tight sm:block">
@@ -119,7 +119,7 @@ export default function Nav() {
             <div className="mx-auto flex h-full max-w-7xl flex-col px-5 pb-8 pt-5 sm:px-8">
               <div className="flex items-center justify-between">
                 <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-key text-xl font-extrabold text-ink-950">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-key text-xl font-extrabold text-key-ink">
                     V
                   </span>
                   <span className="leading-tight">
@@ -132,7 +132,7 @@ export default function Nav() {
 
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-ink-600 bg-ink-900 text-mist-400 transition hover:border-brand-600/50 hover:text-brand-600"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-ink-600 bg-ink-900 text-mist-400 transition hover:border-brand-600/50 hover:text-brand-700"
                   aria-label="Close menu"
                 >
                   <X size={20} />

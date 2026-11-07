@@ -193,19 +193,19 @@ const DEFAULT_SETTINGS = {
 }
 
 const PRODUCTS = [
-  ['Samsung Galaxy S24 Ultra 5G', 'Samsung', 'smartphone', 134999, 129999, 6, 'photo-1610945265064-0e34e5519bbf',
+  ['Samsung Galaxy S24 Ultra 5G', 'Samsung', 'smartphone', 134999, 129999, 6, 'photo-1713027420493-e675245ea725',
     'Titanium frame, 200MP camera and the built-in S Pen. The flagship our customers trade up to most often.',
     ['6.8" QHD+ Dynamic AMOLED 2X', '200MP + 50MP + 12MP + 10MP', 'Snapdragon 8 Gen 3', '12GB / 256GB', '5000mAh, 45W'], 1],
-  ['Apple iPhone 15 Pro', 'Apple', 'smartphone', 134900, 128900, 4, 'photo-1695048133142-1a20484d2569',
+  ['Apple iPhone 15 Pro', 'Apple', 'smartphone', 134900, 128900, 4, 'photo-1703133431079-8477009d42b2',
     'A17 Pro silicon in a titanium body, with the Action button and USB-C. Sealed box, Indian warranty.',
     ['6.1" Super Retina XDR', '48MP Main + Ultra Wide + Tele', 'A17 Pro chip', '128GB', 'USB-C, MagSafe'], 1],
   ['Apple iPhone 14', 'Apple', 'smartphone', 69900, 58999, 7, 'photo-1678652197831-2d180705cd2c',
     'Still the best value iPhone on our shelf — superb cameras and Crash Detection.',
     ['6.1" Super Retina XDR', '12MP dual camera', 'A15 Bionic', '128GB', 'Up to 20 hr video'], 0],
-  ['OnePlus 12R 5G', 'OnePlus', 'smartphone', 45999, 39999, 9, 'photo-1511707171634-5f897ff02aa9',
+  ['OnePlus 12R 5G', 'OnePlus', 'smartphone', 45999, 39999, 9, 'photo-1673718424091-5fb734062c05',
     'Flagship-grade speed at a mid-range price, with 100W SUPERVOOC charging.',
     ['6.78" 120Hz LTPO AMOLED', '50MP Sony IMX890', 'Snapdragon 8 Gen 2', '8GB / 128GB', '5500mAh, 100W'], 1],
-  ['Xiaomi Redmi Note 13 Pro 5G', 'Xiaomi', 'smartphone', 26999, 23999, 18, 'photo-1598327105666-5b89351aff97',
+  ['Xiaomi Redmi Note 13 Pro 5G', 'Xiaomi', 'smartphone', 26999, 23999, 18, 'photo-1697981812520-d1e056308e52',
     'Our single best-selling handset. 200MP camera, curved AMOLED, built like a phone twice the price.',
     ['6.67" 120Hz AMOLED', '200MP OIS main camera', 'Snapdragon 7s Gen 2', '8GB / 256GB', '5100mAh, 67W'], 1],
   ['realme 12 Pro+ 5G', 'realme', 'smartphone', 32999, 29999, 11, 'photo-1592750475338-74b7b21085ab',
@@ -290,8 +290,8 @@ const FEEDBACK = [
     'Got ₹14500 for my 3-year-old OnePlus against a new Nothing Phone. The online sites were offering ₹11000. Quick inspection, instant adjustment in the bill.', 68, 'Exchange / Trade-in'],
   ['Kavita Mishra', 'Ashok Nagar, Ranchi', 5, 'Sunday opening saved me',
     'My phone died on a Saturday night before an important Monday presentation. They are open Sunday and had it sorted by evening. Life savers.', 26, 'Software / Data Recovery'],
-  ['Deepak Oraon', 'Ratu Road, Ranchi', 4, 'Clean shop, proper bills',
-    'Everything is billed with GST, nothing under the table. Shop is air-conditioned and they have chairs, which matters when there is a queue. Prices are fair, not the cheapest in town but you get warranty.', 54, 'New Phone Purchase'],
+  ['Deepak Oraon', 'Ratu Road, Ranchi', 4, 'Treated properly even on a busy Sunday',
+    'Walked in on a Sunday evening with a dead handset and they still put it on the bench the same hour. Shop is clean, there are chairs for the queue, and the warranty slip is handed over without being asked for. Not the cheapest in the gali, but fair.', 54, 'New Phone Purchase'],
 ]
 
 // The trailing number is how many days ago the device came in, so the seeded

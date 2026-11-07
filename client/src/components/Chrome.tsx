@@ -69,7 +69,7 @@ export function Preloader() {
       <div className="relative flex flex-col items-center gap-6">
         <div className="relative h-20 w-20">
           <span className="absolute inset-0 rounded-2xl border-2 border-key/40 animate-pulse-ring" />
-          <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-key text-2xl font-extrabold text-ink-950">
+          <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-key text-2xl font-extrabold text-key-ink">
             V
           </span>
         </div>

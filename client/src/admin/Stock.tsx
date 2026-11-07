@@ -296,7 +296,7 @@ function IconButton({
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`flex h-9 w-9 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition ${ danger ? 'hover:border-danger/50 hover:text-danger' : 'hover:border-brand-700/50 hover:text-mist-50' }`}
+      className={`flex h-9 w-9 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition ${ danger ? 'hover:border-danger/50 hover:text-danger' : 'hover:border-brand-600/50 hover:text-brand-700' }`}
     >
       {children}
     </button>
@@ -519,7 +519,7 @@ function MovementModal({ product, onClose, onSaved }: { product: Product; onClos
               key={opt.value}
               type="button"
               onClick={() => setKind(opt.value)}
-              className={`rounded-2xl border p-4 text-left transition ${ kind === opt.value ? 'border-brand-700 bg-brand-600/15' : 'border-ink-700 bg-ink-800 hover:border-ink-500' }`}
+              className={`rounded-2xl border p-4 text-left transition ${ kind === opt.value ? 'border-brand-600 bg-brand-600/15' : 'border-ink-700 bg-ink-800 hover:border-brand-600/45' }`}
             >
               <opt.icon size={18} className={kind === opt.value ? 'text-brand-700' : 'text-mist-400'} />
               <div className="mt-2 text-sm font-semibold">{opt.label}</div>

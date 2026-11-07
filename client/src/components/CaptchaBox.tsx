@@ -30,7 +30,7 @@ export default function CaptchaBox({ captcha, label = 'Security check' }: Props)
         <button
           type="button"
           onClick={captcha.refresh}
-          className="flex h-[72px] w-12 shrink-0 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition hover:border-brand-500/50 hover:text-mist-50"
+          className="flex h-[72px] w-12 shrink-0 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition hover:border-brand-600/50 hover:text-brand-700"
           aria-label="Get a new security code"
           title="Get a new code"
         >

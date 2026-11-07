@@ -126,7 +126,7 @@ export default function Products() {
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 hover:text-mist-50"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-mist-500 transition hover:text-brand-700"
                   aria-label="Clear search"
                 >
                   <X size={16} />
@@ -196,7 +196,7 @@ export default function Products() {
                     setSearch('')
                     setParams({}, { replace: true })
                   }}
-                  className="w-full rounded-xl border border-ink-700 py-2.5 text-sm font-semibold text-mist-400 transition hover:border-brand-600/40 hover:text-brand-600"
+                  className="w-full rounded-xl border border-ink-700 py-2.5 text-sm font-semibold text-mist-400 transition hover:border-brand-600/45 hover:text-brand-700"
                 >
                   Clear all filters
                 </button>

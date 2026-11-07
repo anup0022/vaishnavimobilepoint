@@ -151,7 +151,7 @@ export default function About() {
           <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {VALUES.map((value, i) => (
               <Reveal key={value.title} delay={Math.min(i * 0.04, 0.3)}>
-                <div className="h-full rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-all duration-300 hover:-translate-y-1.5 active:scale-[0.985] hover:border-brand-700/40">
+                <div className="h-full rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-all duration-300 hover:-translate-y-1.5 active:scale-[0.985] hover:border-brand-600/45">
                   <span className="mb-5 flex h-13 w-13 items-center justify-center rounded-2xl bg-brand-600/20 p-3.5 text-brand-700">
                     <value.icon size={22} />
                   </span>

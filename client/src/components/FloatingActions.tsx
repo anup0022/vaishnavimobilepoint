@@ -42,7 +42,7 @@ export default function FloatingActions() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.6 }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-ink-700 bg-ink-800 text-mist-200 backdrop-blur transition hover:border-brand-500/50 hover:text-mist-50"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-ink-700 bg-ink-800 text-mist-200 backdrop-blur transition hover:border-brand-600/50 hover:text-brand-700"
             aria-label="Back to top"
           >
             <ArrowUp size={20} />

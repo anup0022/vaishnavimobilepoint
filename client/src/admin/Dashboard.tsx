@@ -144,7 +144,7 @@ export default function Dashboard() {
 
           <Link
             to="/admin/messages"
-            className="flex items-center gap-4 rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-500/40"
+            className="flex items-center gap-4 rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-600/45"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600">
               <Mail size={21} />
@@ -157,7 +157,7 @@ export default function Dashboard() {
 
           <Link
             to="/admin/settings"
-            className="flex items-center gap-4 rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-700/40"
+            className="flex items-center gap-4 rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-600/45"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600/15 text-brand-700">
               <Settings2 size={21} />
@@ -223,7 +223,7 @@ export default function Dashboard() {
               <Link
                 key={booking.id}
                 to="/admin/bookings"
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-700 bg-ink-850 lift p-4 transition hover:border-brand-700/40"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-700 bg-ink-850 lift p-4 transition hover:border-brand-600/45"
               >
                 <div className="min-w-0">
                   <div className="font-display text-sm font-bold">{booking.ticket}</div>

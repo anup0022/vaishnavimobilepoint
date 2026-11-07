@@ -128,7 +128,7 @@ export default function Messages() {
                   {message.email && (
                     <a
                       href={`mailto:${message.email}?subject=Re: ${encodeURIComponent(message.subject)}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-700 text-mist-400 transition hover:border-brand-500/50 hover:text-brand-600"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-700 text-mist-400 transition hover:border-brand-600/50 hover:text-brand-700"
                       aria-label="Reply by email"
                     >
                       <Mail size={15} />

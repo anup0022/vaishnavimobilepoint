@@ -111,7 +111,7 @@ export default function Feedback() {
                     <button
                       key={stars}
                       onClick={() => setFilter(filter === stars ? 0 : stars)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 transition ${ filter === stars ? 'bg-warn/10' : 'hover:bg-ink-800' }`}
+                      className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 transition ${ filter === stars ? 'bg-brand-600/12' : 'hover:bg-ink-800' }`}
                     >
                       <span className="flex w-12 items-center gap-1 text-sm text-mist-400">
                         {stars} <Star size={12} className="text-warn" fill="currentColor" />
@@ -158,7 +158,7 @@ export default function Feedback() {
                    narrower than its longest unbreakable word. Reviews are typed
                    by customers — one long token was widening the whole page to
                    404px inside a 390px viewport. */
-                className="flex h-full min-w-0 flex-col rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-colors hover:border-warn/30"
+                className="flex h-full min-w-0 flex-col rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-colors hover:border-brand-600/45"
               >
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex gap-1">

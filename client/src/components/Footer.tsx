@@ -61,7 +61,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition hover:border-brand-700/50 hover:bg-brand-600/15 hover:text-mist-50"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition hover:border-brand-600/50 hover:bg-brand-600/15 hover:text-brand-700"
                   >
                     <Icon size={17} />
                   </a>
@@ -74,7 +74,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {SHOP_LINKS.map((link) => (
                 <li key={link.label}>
-                  <Link to={link.to} className="text-sm text-mist-400 transition hover:text-brand-600">
+                  <Link to={link.to} className="text-sm text-mist-400 transition hover:text-brand-700">
                     {link.label}
                   </Link>
                 </li>
@@ -87,7 +87,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {HELP_LINKS.map((link) => (
                 <li key={link.label}>
-                  <Link to={link.to} className="text-sm text-mist-400 transition hover:text-brand-600">
+                  <Link to={link.to} className="text-sm text-mist-400 transition hover:text-brand-700">
                     {link.label}
                   </Link>
                 </li>
@@ -105,11 +105,11 @@ export default function Footer() {
               <li className="flex gap-3">
                 <Phone size={17} className="mt-0.5 shrink-0 text-brand-700" />
                 <span className="flex flex-col">
-                  <a href={`tel:${(settings.phone_primary || '').replace(/\s/g, '')}`} className="hover:text-mist-50">
+                  <a href={`tel:${(settings.phone_primary || '').replace(/\s/g, '')}`} className="transition hover:text-brand-700">
                     {settings.phone_primary}
                   </a>
                   {settings.phone_secondary && (
-                    <a href={`tel:${settings.phone_secondary.replace(/\s/g, '')}`} className="hover:text-mist-50">
+                    <a href={`tel:${settings.phone_secondary.replace(/\s/g, '')}`} className="transition hover:text-brand-700">
                       {settings.phone_secondary}
                     </a>
                   )}
@@ -117,7 +117,7 @@ export default function Footer() {
               </li>
               <li className="flex gap-3">
                 <Mail size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                <a href={`mailto:${settings.email}`} className="hover:text-mist-50">
+                <a href={`mailto:${settings.email}`} className="transition hover:text-brand-700">
                   {settings.email}
                 </a>
               </li>
@@ -138,15 +138,15 @@ export default function Footer() {
             &copy; {year} {settings.shop_name}. GSTIN {settings.gst}. All rights reserved.
           </p>
           <div className="flex items-center gap-5">
-            <Link to="/faq" className="transition hover:text-mist-200">
+            <Link to="/faq" className="transition hover:text-brand-700">
               FAQ
             </Link>
-            <Link to="/contact" className="transition hover:text-mist-200">
+            <Link to="/contact" className="transition hover:text-brand-700">
               Contact
             </Link>
             {/* Staff entrance — intentionally understated, and the CMS itself
                 is behind a login, so customers never see stock figures. */}
-            <Link to="/admin" className="flex items-center gap-1.5 transition hover:text-mist-200">
+            <Link to="/admin" className="flex items-center gap-1.5 transition hover:text-brand-700">
               <Lock size={11} />
               Staff Login
             </Link>

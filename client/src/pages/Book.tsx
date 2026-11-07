@@ -116,7 +116,7 @@ export default function Book() {
                 navigator.clipboard?.writeText(ticket)
                 toast.push('Ticket number copied.', 'success')
               }}
-              className="mx-auto mt-4 flex items-center gap-2 text-sm font-medium text-mist-400 transition hover:text-mist-50"
+              className="mx-auto mt-4 flex items-center gap-2 text-sm font-medium text-mist-400 transition hover:text-brand-700"
             >
               <Copy size={14} /> Copy to clipboard
             </button>
@@ -258,7 +258,7 @@ export default function Book() {
                           key={brand}
                           type="button"
                           onClick={() => set('deviceBrand', brand)}
-                          className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${ form.deviceBrand === brand ? 'border-brand-700 bg-brand-600/20 text-mist-50' : 'border-ink-700 bg-ink-800 text-mist-400 hover:border-ink-500 hover:text-mist-50' }`}
+                          className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${ form.deviceBrand === brand ? 'border-brand-600 bg-brand-600/20 text-mist-50' : 'border-ink-700 bg-ink-800 text-mist-400 hover:border-brand-600/45 hover:text-brand-700' }`}
                         >
                           {brand}
                         </button>

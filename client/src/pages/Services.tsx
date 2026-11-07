@@ -59,7 +59,7 @@ export default function Services() {
         <div className="mt-16 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service, i) => (
             <Reveal key={service.title} delay={Math.min(i * 0.04, 0.3)}>
-              <article className="group flex h-full flex-col rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-all duration-300 hover:-translate-y-1.5 active:scale-[0.985] hover:border-brand-700/40">
+              <article className="group flex h-full flex-col rounded-3xl border border-ink-700 bg-ink-850 lift p-7 transition-all duration-300 hover:-translate-y-1.5 active:scale-[0.985] hover:border-brand-600/45">
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600/20 text-brand-700 transition-colors group-hover:bg-brand-600 group-hover:text-white">
                   <service.icon size={24} />
                 </div>
