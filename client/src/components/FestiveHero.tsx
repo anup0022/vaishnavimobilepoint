@@ -222,12 +222,12 @@ export default function FestiveHero() {
           <div className="dw-side dw-side--r">
             <p className="dw-eyebrow">Festive special</p>
             <p className="dw-body">
-              A free screen guard and case with every phone, exchange value on your old
-              handset across the counter, and a same-day display or battery swap so nobody
-              spends the festival on a dead screen.
+              Free tempered glass and six months of screen protection with every new phone,
+              exchange value on your old handset across the counter, and a same-day display
+              or battery swap so nobody spends the festival on a dead screen.
             </p>
             <p className="dw-note">
-              Open all seven days through the festival &middot;{' '}
+              Open seven days a week &middot;{' '}
               <span>{settings.phone_primary}</span>
             </p>
           </div>
