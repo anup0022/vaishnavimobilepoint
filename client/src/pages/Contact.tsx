@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
-  MapPin, Phone, Mail, Clock4, MessageCircle, Send, CheckCircle2, Navigation, Store,
+  MapPin, Phone, Mail, Clock4, Send, CheckCircle2, Navigation, Store,
 } from 'lucide-react'
 import { api, ApiError } from '@/lib/api'
 import { useCaptcha } from '@/lib/useCaptcha'
@@ -11,6 +11,7 @@ import CaptchaBox from '@/components/CaptchaBox'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
 import TalkToUs, { formsOffline } from '@/components/TalkToUs'
+import { WhatsApp } from '@/components/BrandIcons'
 
 const SUBJECTS = [
   'General enquiry', 'Product availability & price', 'Repair enquiry', 'Bulk / corporate order',
@@ -67,7 +68,7 @@ export default function Contact() {
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: Phone, label: 'Call the counter', value: settings.phone_primary, href: phoneHref(settings.phone_primary), tone: 'text-brand-700 bg-brand-600/15' },
-            { icon: MessageCircle, label: 'WhatsApp', value: 'Chat with us', href: whatsappLink(settings), tone: 'text-brand-600 bg-brand-600/15', external: true },
+            { icon: WhatsApp, label: 'WhatsApp', value: 'Chat with us', href: whatsappLink(settings), tone: 'text-brand-600 bg-brand-600/15', external: true },
             { icon: Mail, label: 'Email', value: settings.email, href: `mailto:${settings.email}`, tone: 'text-brand-600 bg-brand-500/15' },
             { icon: Navigation, label: 'Directions', value: 'Open in Maps', href: mapDirectionsUrl(settings), tone: 'text-brand-600 bg-brand-600/15', external: true },
           ].map((card, i) => (

@@ -4,6 +4,7 @@ import { ArrowUpRight, Star } from 'lucide-react'
 import type { Product } from '@/lib/api'
 import { money, AVAILABILITY_LABELS } from '@/lib/format'
 import SmartImage from './SmartImage'
+import { cropped, SQUARE_WIDTHS } from '@/lib/images'
 import TiltCard from './TiltCard'
 
 const AVAILABILITY_STYLE: Record<string, string> = {
@@ -13,6 +14,7 @@ const AVAILABILITY_STYLE: Record<string, string> = {
 }
 
 export default function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
+  const image = cropped(product.image_url, 1, SQUARE_WIDTHS)
   return (
     <motion.div
       layout
@@ -28,7 +30,9 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
         >
           <div className="relative aspect-square overflow-hidden bg-ink-950">
             <SmartImage
-              src={product.image_url}
+              src={image.src}
+              srcSet={image.srcSet}
+              sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(50vw - 32px), 360px"
               alt={product.name}
               seed={product.sku}
               className="h-full w-full transition-transform duration-700 group-hover:scale-110"

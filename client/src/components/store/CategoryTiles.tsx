@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { ImageSet } from '@/lib/images'
 
 export interface CategoryTile {
   key: string
@@ -7,7 +8,8 @@ export interface CategoryTile {
   label: string
   /** Small grey line under it: the category. */
   detail: string
-  image: string
+  /** Cropped to the tile's 6:5 in several widths (lib/images.ts). */
+  image: ImageSet
   to: string
 }
 
@@ -62,10 +64,16 @@ export default function CategoryTiles({ tiles }: { tiles: CategoryTile[] }) {
               <Link to={tile.to} className="group block text-center">
                 <div className="border-[10px] border-white bg-white">
                   <div className="aspect-[6/5] overflow-hidden bg-[var(--st-tile)]">
+                    {/* Eager, at low priority: on phones three of the four sit
+                        off to the side of the swipe row, and a lazy image
+                        there only starts loading as it slides into view. */}
                     <img
-                      src={tile.image}
+                      src={tile.image.src}
+                      srcSet={tile.image.srcSet}
+                      sizes="(max-width: 639px) calc(100vw - 60px), (max-width: 1023px) calc(50vw - 45px), (max-width: 1439px) calc(25vw - 50px), 293px"
                       alt=""
-                      loading="lazy"
+                      loading="eager"
+                      fetchPriority="low"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>

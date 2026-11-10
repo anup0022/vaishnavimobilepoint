@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Lock, MessageCircle } from 'lucide-react'
-import { Facebook, Instagram, Youtube } from './BrandIcons'
-import { useSettings, fullAddress, whatsappLink } from '@/lib/useSettings'
+import { ArrowRight, Lock } from 'lucide-react'
+import { Facebook, InstagramLogo, WhatsAppLogo, Youtube } from './BrandIcons'
+import { useSettings, fullAddress, isRealProfile, whatsappLink } from '@/lib/useSettings'
 import Wordmark from './store/Wordmark'
 import './store/store.css'
 
@@ -27,16 +27,6 @@ const REPAIR_LINKS = [
 /** How the FAQ says customers can pay. */
 const PAYMENTS = ['UPI', 'Cards', 'Cash', 'No-cost EMI']
 
-/** A bare https://facebook.com/ is the seed's placeholder, not a page. */
-function isRealProfile(url: string | undefined) {
-  if (!url) return false
-  try {
-    return new URL(url).pathname.replace(/\/+$/, '').length > 0
-  } catch {
-    return false
-  }
-}
-
 const linkClass = 'text-[15px] font-medium leading-[27px] text-[var(--st-muted)] transition-colors hover:text-black'
 
 export default function Footer() {
@@ -46,9 +36,9 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   const socials = [
-    { url: settings.social_facebook, label: 'Facebook', Icon: Facebook },
-    { url: settings.social_instagram, label: 'Instagram', Icon: Instagram },
-    { url: settings.social_youtube, label: 'YouTube', Icon: Youtube },
+    { url: settings.social_instagram, label: 'Instagram', icon: <InstagramLogo size={34} /> },
+    { url: settings.social_facebook, label: 'Facebook', icon: <Facebook size={34} className="text-[#1877F2]" /> },
+    { url: settings.social_youtube, label: 'YouTube', icon: <Youtube size={36} className="text-[#FF0000]" /> },
   ].filter((s) => isRealProfile(s.url))
 
   function track(e: FormEvent) {
@@ -92,26 +82,28 @@ export default function Footer() {
             </button>
           </form>
 
-          <div className="mt-6 flex items-center gap-1">
+          {/* The official coloured marks, so they read as WhatsApp and
+              Instagram at a glance. */}
+          <div className="-ml-1 mt-6 flex items-center gap-2">
             <a
               href={whatsappLink(settings)}
               target="_blank"
               rel="noreferrer noopener"
-              className="flex h-10 w-10 items-center justify-center text-black/55 transition-colors hover:text-black"
-              aria-label="WhatsApp"
+              className="flex h-11 w-11 items-center justify-center transition-transform hover:-translate-y-0.5"
+              aria-label="Chat with us on WhatsApp"
             >
-              <MessageCircle size={18} />
+              <WhatsAppLogo size={34} />
             </a>
-            {socials.map(({ url, label, Icon }) => (
+            {socials.map(({ url, label, icon }) => (
               <a
                 key={label}
                 href={url}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="flex h-10 w-10 items-center justify-center text-black/55 transition-colors hover:text-black"
-                aria-label={label}
+                className="flex h-11 w-11 items-center justify-center transition-transform hover:-translate-y-0.5"
+                aria-label={`${settings.shop_name} on ${label}`}
               >
-                <Icon size={17} />
+                {icon}
               </a>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUp, MessageCircle, Phone } from 'lucide-react'
+import { ArrowUp, Phone } from 'lucide-react'
+import { WhatsApp } from './BrandIcons'
 import { useSettings, whatsappLink } from '@/lib/useSettings'
 
 /** WhatsApp / call shortcuts plus a back-to-top button. */
@@ -26,7 +27,7 @@ export default function FloatingActions() {
         aria-label="Chat with us on WhatsApp"
       >
         <span className="absolute inset-0 rounded-full bg-[#25D366]/50 animate-pulse-ring" aria-hidden="true" />
-        <MessageCircle size={24} className="relative" />
+        <WhatsApp size={26} className="relative" />
       </a>
 
       <a

@@ -6,6 +6,7 @@ import { api, type Product } from '@/lib/api'
 import { CATEGORY_LABELS } from '@/lib/format'
 import ProductCard from '@/components/ProductCard'
 import Reveal from '@/components/Reveal'
+import { shopPhoto } from '@/lib/images'
 
 interface Facets {
   categories: { category: string; n: number }[]
@@ -103,7 +104,8 @@ export default function Products() {
               change the banner. */}
           <div className="full-bleed overflow-hidden border-y border-ink-700">
             <img
-              src="/shop/banner-wide.jpg"
+              {...shopPhoto('/shop/banner-wide.jpg')}
+              sizes="100vw"
               alt="Vaishnavi Mobile Point — smartphones, headphones and accessories"
               className="aspect-[1680/640] w-full object-cover object-center"
               width={1680}
@@ -165,6 +167,9 @@ export default function Products() {
         <div className="mt-10 grid gap-10 lg:grid-cols-[250px_1fr]">
           {/* filters */}
           <aside className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+            {/* Screen-reader outline: the page's h1, then these, then the h3s
+                of the filter groups and products — no level skipped. */}
+            <h2 className="sr-only">Filters</h2>
             <div className="sticky top-28 space-y-8 rounded-3xl border border-ink-700 bg-ink-850 lift p-6">
               <FilterGroup
                 title="Category"
@@ -206,6 +211,7 @@ export default function Products() {
 
           {/* grid */}
           <div>
+            <h2 className="sr-only">Products</h2>
             <p className="mb-6 text-sm text-mist-500">
               {loading ? 'Loading…' : `${products.length} item${products.length === 1 ? '' : 's'} in store`}
             </p>

@@ -15,6 +15,9 @@ const DEFAULTS: Settings = {
   pincode: '834005',
   latitude: '23.3818672',
   longitude: '85.300538',
+  // What the shop has saved in Site Content, so the phone bottom bar shows
+  // its Instagram button from the first paint instead of popping in.
+  social_instagram: 'https://www.instagram.com/pointvaishnavimobile/',
 }
 
 const SettingsContext = createContext<{ settings: Settings; reload: () => void }>({
@@ -43,6 +46,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(load, [])
 
   return <SettingsContext.Provider value={{ settings, reload: load }}>{children}</SettingsContext.Provider>
+}
+
+/** A bare https://facebook.com/ is the seed's placeholder, not a page. */
+export function isRealProfile(url: string | undefined): url is string {
+  if (!url) return false
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '').length > 0
+  } catch {
+    return false
+  }
 }
 
 /** Builds the full postal address from the CMS fields. */

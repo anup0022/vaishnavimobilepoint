@@ -28,7 +28,9 @@
 
 @theme {
   /* Storefront. Every type step clears 4.5:1 on ink-950 (white) and on
-     ink-900 (the panel grey); mist-500 is the floor at 4.9:1 there. */
+     ink-900 (the panel grey); mist-500 is the floor at 4.9:1 there. The
+     accent and status colours also clear it on their own 10–15% tints laid
+     over the grey panels, which is where the stock and status chips sit. */
   --color-ink-950: #ffffff; /* page                     */
   --color-ink-900: #f7f7f7; /* panels                   */
   --color-ink-850: #f2f2f2; /* nested / secondary panes */
@@ -47,7 +49,7 @@
   --color-brand-50:  #eaf6fb;
   --color-brand-100: #d3edf7;
   --color-brand-500: #2dbbf0;
-  --color-brand-600: #007ba8;
+  --color-brand-600: #006f98;
   --color-brand-700: #006690;
 
   --color-key:     #000000;
@@ -55,9 +57,9 @@
   /* Type that sits on the key fill. */
   --color-key-ink: #ffffff;
 
-  --color-success: #0b7d55;
-  --color-warn:    #a65a00;
-  --color-danger:  #c62f25;
+  --color-success: #086b48;
+  --color-warn:    #8f4d00;
+  --color-danger:  #b0251c;
 
   --font-display: 'Jost', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Jost', ui-sans-serif, system-ui, sans-serif;

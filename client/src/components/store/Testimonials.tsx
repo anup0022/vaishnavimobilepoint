@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import type { Review } from '@/lib/api'
+import { avatar, type ImageSet } from '@/lib/images'
 
 /**
  * One review at a time over a soft photograph: avatar, stars, the review,
  * name and what it was for. Arrows at the edges and left/right keys step
  * through them.
  */
-export default function Testimonials({ reviews, image }: { reviews: Review[] | null; image: string }) {
+interface Props {
+  reviews: Review[] | null
+  /** The background, cropped tall for phones and wide for larger screens. */
+  image: { phone: ImageSet; desktop: ImageSet }
+}
+
+export default function Testimonials({ reviews, image }: Props) {
   const [index, setIndex] = useState(0)
   const count = reviews?.length ?? 0
 
@@ -37,7 +44,17 @@ export default function Testimonials({ reviews, image }: { reviews: Review[] | n
         if (e.key === 'ArrowRight') go(1)
       }}
     >
-      <img src={image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      <picture className="absolute inset-0">
+        <source media="(max-width: 639px)" srcSet={image.phone.srcSet} sizes="100vw" />
+        <img
+          src={image.desktop.src}
+          srcSet={image.desktop.srcSet}
+          sizes="100vw"
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      </picture>
       {/* Lighter at the edges so the photograph shows, whiter behind the
           review so the text keeps its contrast wherever the photo is dark. */}
       <div
@@ -52,7 +69,7 @@ export default function Testimonials({ reviews, image }: { reviews: Review[] | n
           {review ? (
             <figure className="mx-auto max-w-[770px] px-12 text-center lg:px-0" aria-live="polite">
               {review.avatar_url ? (
-                <img src={review.avatar_url} alt="" loading="lazy" className="mx-auto h-20 w-20 rounded-full object-cover" />
+                <img src={avatar(review.avatar_url, 80)} alt="" loading="lazy" className="mx-auto h-20 w-20 rounded-full object-cover" />
               ) : (
                 <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white text-[22px] font-medium text-black">
                   {initials}

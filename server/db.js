@@ -197,7 +197,7 @@ const DEFAULT_SETTINGS = {
   about_body:
     'Vaishnavi Mobile Point sells authorised stock from every major brand, and our in-house service bench handles everything from a cracked display to a dead motherboard. Each repair is logged against a ticket number so you can follow the progress from your phone, and every device leaves with a written warranty.',
   social_facebook: 'https://facebook.com/',
-  social_instagram: 'https://www.instagram.com/rajeev.9x/',
+  social_instagram: 'https://www.instagram.com/pointvaishnavimobile/',
   social_youtube: 'https://youtube.com/',
   stats_customers: '24000',
   stats_repairs: '38500',

@@ -1,4 +1,5 @@
-import { MessageCircle, Phone, MapPin } from 'lucide-react'
+import { Phone, MapPin } from 'lucide-react'
+import { WhatsApp } from './BrandIcons'
 import { useSettings, whatsappLink, fullAddress } from '@/lib/useSettings'
 import Magnetic from './Magnetic'
 
@@ -30,7 +31,7 @@ export default function TalkToUs({ title, body, message }: Props) {
   return (
     <div className="mx-auto max-w-xl rounded-3xl border border-ink-700 bg-ink-900 lift-lg p-7 text-center sm:p-9">
       <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600/15 text-brand-700">
-        <MessageCircle size={24} />
+        <WhatsApp size={24} />
       </span>
 
       <h2 className="text-2xl font-bold">{title}</h2>
@@ -44,7 +45,7 @@ export default function TalkToUs({ title, body, message }: Props) {
             rel="noreferrer noopener"
             className="btn-primary"
           >
-            <MessageCircle size={17} /> WhatsApp us
+            <WhatsApp size={17} /> WhatsApp us
           </a>
         </Magnetic>
         <a href={`tel:${tel}`} className="btn-ghost">

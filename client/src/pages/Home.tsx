@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api, type Product, type Review } from '@/lib/api'
 import { money } from '@/lib/format'
 import { useSettings } from '@/lib/useSettings'
+import { cropped } from '@/lib/images'
 import HeroSlider, { type HeroSlide } from '@/components/store/HeroSlider'
 import CategoryTiles, { type CategoryTile } from '@/components/store/CategoryTiles'
 import ProductShowcase from '@/components/store/ProductShowcase'
@@ -10,15 +11,20 @@ import Testimonials from '@/components/store/Testimonials'
 import ShopGallery from '@/components/store/ShopGallery'
 import '@/components/store/store.css'
 
-/** Catalogue photography from Unsplash, cropped by its CDN to the size needed. */
-function unsplash(id: string, width: number, height?: number) {
-  return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}${height ? `&h=${height}` : ''}&q=80`
-}
+/** Catalogue photography from Unsplash; its CDN crops each size we ask for. */
+const unsplash = (id: string) => `https://images.unsplash.com/${id}`
 
+/**
+ * A hero photo cropped to the slide's shape on each kind of screen: the
+ * phone slide is taller than wide (390×507), the tablet one roughly 5:4,
+ * the desktop one about 7:4. Widths run up to what a 3x phone or a 2x
+ * laptop screen needs.
+ */
 function heroImage(id: string) {
   return {
-    src: unsplash(id, 1600),
-    srcSet: [800, 1200, 1600, 2200].map((w) => `${unsplash(id, w)} ${w}w`).join(', '),
+    phone: cropped(unsplash(id), 0.77, [480, 720, 960, 1290], 72),
+    tablet: cropped(unsplash(id), 1.25, [800, 1200, 1600, 2048], 72),
+    desktop: cropped(unsplash(id), 1.75, [1280, 1600, 1920, 2400, 2880], 72),
   }
 }
 
@@ -87,7 +93,7 @@ export default function Home() {
       key: c.key,
       label: off > 0 ? `Up to ${off}% off` : c.name,
       detail: off > 0 ? c.name : 'Shop now',
-      image: unsplash(c.photo, 640, 533),
+      image: cropped(unsplash(c.photo), 1.2, [360, 540, 720, 960, 1200]),
       to: `/products?category=${c.key}`,
     }
   })
@@ -143,7 +149,13 @@ export default function Home() {
         products={deals}
       />
 
-      <Testimonials reviews={reviews} image={unsplash('photo-1556656793-08538906a9f8', 1920)} />
+      <Testimonials
+        reviews={reviews}
+        image={{
+          phone: cropped(unsplash('photo-1556656793-08538906a9f8'), 0.6, [480, 720, 960, 1290], 70),
+          desktop: cropped(unsplash('photo-1556656793-08538906a9f8'), 2.3, [1280, 1920, 2560], 70),
+        }}
+      />
       <ShopGallery />
     </div>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { ImageSet } from '@/lib/images'
 
 export interface HeroSlide {
   key: string
@@ -9,7 +10,12 @@ export interface HeroSlide {
   detail: string
   cta: string
   to: string
-  image: { src: string; srcSet: string }
+  /**
+   * The same photograph cropped for each screen shape — tall on phones,
+   * squarer on tablets, wide on desktops — so it is never stretched past its
+   * resolution to cover the slide (lib/images.ts).
+   */
+  image: { phone: ImageSet; tablet: ImageSet; desktop: ImageSet }
   alt: string
 }
 
@@ -72,16 +78,20 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             aria-label={`${i + 1} of ${count}: ${slide.title}`}
             aria-hidden={!active}
           >
-            <img
-              src={slide.image.src}
-              srcSet={slide.image.srcSet}
-              sizes="100vw"
-              alt={slide.alt}
-              className={`h-full w-full object-cover transition-opacity duration-700 ${active ? 'opacity-100' : 'opacity-0'}`}
-              loading={i === 0 ? 'eager' : 'lazy'}
-              fetchPriority={i === 0 ? 'high' : 'auto'}
-              draggable={false}
-            />
+            <picture className="block h-full w-full">
+              <source media="(max-width: 639px)" srcSet={slide.image.phone.srcSet} sizes="100vw" />
+              <source media="(max-width: 1023px)" srcSet={slide.image.tablet.srcSet} sizes="100vw" />
+              <img
+                src={slide.image.desktop.src}
+                srcSet={slide.image.desktop.srcSet}
+                sizes="100vw"
+                alt={slide.alt}
+                className={`h-full w-full object-cover transition-opacity duration-700 ${active ? 'opacity-100' : 'opacity-0'}`}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                fetchPriority={i === 0 ? 'high' : 'auto'}
+                draggable={false}
+              />
+            </picture>
             {/* The photographs cross-fade; the cards take turns — the old one
                 leaves before the new one arrives — so two titles never show
                 through each other mid-change. */}

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Menu, X, Phone, Search, PackageSearch, MessageCircle, LayoutGrid, MapPin, Clock4, Wrench,
+  Menu, X, Phone, Search, PackageSearch, LayoutGrid, MapPin, Clock4, Wrench,
 } from 'lucide-react'
-import { useSettings, fullAddress, whatsappLink } from '@/lib/useSettings'
+import { useSettings, fullAddress, isRealProfile, whatsappLink } from '@/lib/useSettings'
+import { InstagramLogo, WhatsApp, WhatsAppLogo } from './BrandIcons'
 import Wordmark from './store/Wordmark'
 import './store/store.css'
 
@@ -23,6 +24,9 @@ const MORE_LINKS = [
   { to: '/feedback', label: 'Reviews' },
   { to: '/faq', label: 'FAQ' },
 ]
+
+/** One cell of the phone bottom bar: an icon over a small label. */
+const barItem = 'flex flex-col items-center gap-1 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black'
 
 const iconButton =
   'flex h-11 w-11 items-center justify-center text-black transition-colors hover:text-[var(--st-accent-ink)]'
@@ -83,6 +87,7 @@ export default function Nav() {
 
   const telHref = `tel:${(settings.phone_primary || '').replace(/\s/g, '')}`
   const wa = whatsappLink(settings)
+  const instagram = isRealProfile(settings.social_instagram) ? settings.social_instagram : null
 
   // A fragment, not a wrapper: the header is sticky, and a sticky element
   // only sticks inside its parent — a wrapper ending below the header would
@@ -152,7 +157,7 @@ export default function Nav() {
               aria-label="Chat on WhatsApp"
               title="WhatsApp"
             >
-              <MessageCircle size={22} strokeWidth={1.6} />
+              <WhatsApp size={21} />
             </a>
             <a href={telHref} className={`relative ${iconButton}`} aria-label={`Call ${settings.phone_primary}`} title={settings.phone_primary}>
               <Phone size={21} strokeWidth={1.6} />
@@ -260,36 +265,29 @@ export default function Nav() {
         )}
       </AnimatePresence>
 
-      {/* phones: the actions, fixed to the bottom of the screen */}
+      {/* phones: the actions, fixed to the bottom of the screen. Search
+          lives in the header's top bar; Instagram and WhatsApp wear their
+          own colours so they read at a glance. */}
       <nav
-        className="st fixed inset-x-0 bottom-0 z-[110] grid grid-cols-5 divide-x divide-[var(--st-line)] border-t border-[var(--st-line)] bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className={`st fixed inset-x-0 bottom-0 z-[110] grid ${instagram ? 'grid-cols-5' : 'grid-cols-4'} divide-x divide-[var(--st-line)] border-t border-[var(--st-line)] bg-white pb-[env(safe-area-inset-bottom)] lg:hidden`}
         aria-label="Quick actions"
       >
-        <Link to="/products" className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black">
-          <LayoutGrid size={21} strokeWidth={1.6} /> Shop
+        <Link to="/products" className={barItem}>
+          <LayoutGrid size={22} strokeWidth={1.6} /> Shop
         </Link>
-        <button
-          onClick={() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-            setSearching(true)
-          }}
-          className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black"
-        >
-          <Search size={21} strokeWidth={1.6} /> Search
-        </button>
-        <Link to="/track" className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black">
-          <PackageSearch size={21} strokeWidth={1.6} /> Track
+        {instagram && (
+          <a href={instagram} target="_blank" rel="noreferrer noopener" className={barItem}>
+            <InstagramLogo size={22} /> Instagram
+          </a>
+        )}
+        <Link to="/track" className={barItem}>
+          <PackageSearch size={22} strokeWidth={1.6} /> Track
         </Link>
-        <a
-          href={wa}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black"
-        >
-          <MessageCircle size={21} strokeWidth={1.6} /> WhatsApp
+        <a href={wa} target="_blank" rel="noreferrer noopener" className={barItem}>
+          <WhatsAppLogo size={22} /> WhatsApp
         </a>
-        <a href={telHref} className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black">
-          <Phone size={21} strokeWidth={1.6} /> Call
+        <a href={telHref} className={barItem}>
+          <Phone size={22} strokeWidth={1.6} /> Call
         </a>
       </nav>
     </>

@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowLeft, Phone, MessageCircle, ShieldCheck, Truck, RefreshCw, Star, Sparkles,
+  ArrowLeft, Phone, ShieldCheck, Truck, RefreshCw, Star, Sparkles,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { api, ApiError, type Product } from '@/lib/api'
 import { money, AVAILABILITY_LABELS, CATEGORY_LABELS } from '@/lib/format'
 import { galleryFor } from '@/lib/gallery'
+import { responsive } from '@/lib/images'
 import { useSettings, whatsappLink } from '@/lib/useSettings'
 import { applyNotFoundMeta, applyProductMeta } from '@/lib/pageMeta'
 import { trackPageView } from '@/lib/analytics'
@@ -15,6 +16,7 @@ import SmartImage from '@/components/SmartImage'
 import ProductCard from '@/components/ProductCard'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
+import { WhatsApp } from '@/components/BrandIcons'
 
 const AVAILABILITY_STYLE: Record<string, string> = {
   in_stock: 'border-success/35 bg-success/10 text-success',
@@ -195,7 +197,7 @@ export default function ProductDetail() {
                     rel="noreferrer noopener"
                     className="btn-ghost"
                   >
-                    <MessageCircle size={18} /> WhatsApp enquiry
+                    <WhatsApp size={18} /> WhatsApp enquiry
                   </a>
                 </div>
               </div>
@@ -258,6 +260,7 @@ function OrbitGallery({ product }: { product: Product }) {
   }
 
   const frame = frames[index]
+  const big = responsive(frame.src, 1, [480, 720, 960, 1200, 1600])
 
   return (
     <div>
@@ -287,7 +290,14 @@ function OrbitGallery({ product }: { product: Product }) {
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             className="relative"
           >
-            <SmartImage src={frame.src} alt={`${product.name} — ${frame.label}`} seed={product.sku} className="aspect-square w-full" />
+            <SmartImage
+              src={big.src}
+              srcSet={big.srcSet}
+              sizes="(max-width: 1023px) calc(100vw - 40px), 600px"
+              alt={`${product.name} — ${frame.label}`}
+              seed={product.sku}
+              className="aspect-square w-full"
+            />
           </motion.div>
         </AnimatePresence>
 
@@ -322,7 +332,9 @@ function OrbitGallery({ product }: { product: Product }) {
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex gap-2">
-          {frames.map((f, i) => (
+          {frames.map((f, i) => {
+            const thumb = responsive(f.src, 1, [120, 180])
+            return (
             <button
               key={f.src}
               onClick={() => setIndex(i)}
@@ -332,9 +344,10 @@ function OrbitGallery({ product }: { product: Product }) {
                 i === index ? 'border-key' : 'border-ink-700 opacity-55 hover:opacity-90'
               }`}
             >
-              <SmartImage src={f.src} alt="" seed={f.label} className="h-full w-full" />
+              <SmartImage src={thumb.src} srcSet={thumb.srcSet} sizes="56px" alt="" seed={f.label} className="h-full w-full" />
             </button>
-          ))}
+            )
+          })}
         </div>
         <p className="readout text-right text-[10px] uppercase tracking-[0.14em] text-mist-500">
           {frame.label}

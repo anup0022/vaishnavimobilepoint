@@ -65,12 +65,34 @@ export default function Reveal({
    */
   if (calm) return <div className={className}>{children}</div>
 
+  /*
+   * A wipe starts fully clipped, and the browser treats a fully clipped
+   * element as not on screen at all: watched directly, it never reported
+   * itself in view, so it never unclipped — the About photos and timeline and
+   * part of Contact stayed invisible for good, and the lazy images inside
+   * never even downloaded. The plain outer box is what gets watched; only the
+   * inner one is clipped.
+   */
+  if (wipe) {
+    return (
+      <div ref={ref} className={className}>
+        <motion.div
+          initial={{ opacity: 0, clipPath: wipe.from }}
+          animate={inView ? { opacity: 1, clipPath: wipe.to } : {}}
+          transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}
+        </motion.div>
+      </div>
+    )
+  }
+
   return (
     <motion.div
       ref={ref}
       className={className}
-      initial={wipe ? { opacity: 0, clipPath: wipe.from } : { opacity: 0, ...OFFSETS[direction] }}
-      animate={inView ? (wipe ? { opacity: 1, clipPath: wipe.to } : { opacity: 1, y: 0, scale: 1 }) : {}}
+      initial={{ opacity: 0, ...OFFSETS[direction] }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}

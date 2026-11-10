@@ -7,6 +7,7 @@ import Reveal from '@/components/Reveal'
 import SectionTitle from '@/components/SectionTitle'
 import Magnetic from '@/components/Magnetic'
 import SmartImage from '@/components/SmartImage'
+import { shopPhoto } from '@/lib/images'
 import { useSettings } from '@/lib/useSettings'
 
 const SERVICES = [
@@ -104,7 +105,8 @@ export default function Services() {
         {/* CTA */}
         <div className="relative mt-24 overflow-hidden rounded-[2.5rem] border border-ink-700">
           <SmartImage
-            src="/shop/shop-15.jpg"
+            {...shopPhoto('/shop/shop-15.jpg')}
+            sizes="(max-width: 639px) 240vw, 100vw"
             alt="Inside Vaishnavi Mobile Point, Churi Centre Gali"
             seed="services-cta"
             className="absolute inset-0 h-full w-full"

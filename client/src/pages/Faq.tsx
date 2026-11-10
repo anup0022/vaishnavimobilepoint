@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, HelpCircle, MessageCircle } from 'lucide-react'
+import { ChevronDown, HelpCircle } from 'lucide-react'
+import { WhatsApp } from '@/components/BrandIcons'
 import Reveal from '@/components/Reveal'
 import { useSettings, whatsappLink } from '@/lib/useSettings'
 
@@ -92,7 +93,7 @@ export default function Faq() {
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <a href={whatsappLink(settings)} target="_blank" rel="noreferrer noopener" className="btn-primary">
-                <MessageCircle size={18} /> WhatsApp us
+                <WhatsApp size={18} /> WhatsApp us
               </a>
               <Link to="/contact" className="btn-ghost">
                 Other ways to reach us

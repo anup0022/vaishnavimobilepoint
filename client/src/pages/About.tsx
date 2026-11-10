@@ -3,6 +3,7 @@ import { Store, Heart, Users, Award, ArrowRight, Quote, Wrench } from 'lucide-re
 import Reveal from '@/components/Reveal'
 import SectionTitle from '@/components/SectionTitle'
 import SmartImage from '@/components/SmartImage'
+import { shopPhoto } from '@/lib/images'
 import Counter from '@/components/Counter'
 import Magnetic from '@/components/Magnetic'
 import { useSettings } from '@/lib/useSettings'
@@ -87,20 +88,23 @@ export default function About() {
           <Reveal direction="left">
             <div className="grid grid-cols-2 gap-4">
               <SmartImage
-                src="/shop/shop-10.jpg"
+                {...shopPhoto('/shop/shop-10.jpg')}
+                sizes="(max-width: 1023px) 110vw, 720px"
                 alt="The Vaishnavi Mobile Point storefront in Churi Centre Gali"
                 seed="about-1"
                 className="aspect-[3/4] rounded-3xl border border-ink-700"
               />
               <div className="mt-10 grid gap-4">
                 <SmartImage
-                  src="/shop/shop-03.jpg"
+                  {...shopPhoto('/shop/shop-03.jpg')}
+                  sizes="(max-width: 1023px) 60vw, 400px"
                   alt="Staff at the Vaishnavi Mobile Point counter"
                   seed="about-2"
                   className="aspect-square rounded-3xl border border-ink-700"
                 />
                 <SmartImage
-                  src="/shop/shop-08.jpg"
+                  {...shopPhoto('/shop/shop-08.jpg')}
+                  sizes="(max-width: 1023px) 60vw, 400px"
                   alt="Accessory shelves inside the shop"
                   seed="about-3"
                   className="aspect-square rounded-3xl border border-ink-700"

@@ -3,6 +3,9 @@ import { ImageOff } from 'lucide-react'
 
 interface Props {
   src: string
+  /** Other widths of the same picture, and how wide its slot is (lib/images.ts). */
+  srcSet?: string
+  sizes?: string
   alt: string
   className?: string
   /** Seeds the fallback gradient so each product gets its own colour. */
@@ -31,7 +34,7 @@ const POSITIONED = /(^|\s)(absolute|fixed|sticky|static)(\s|$)/
  * Product photos come from a remote CDN, so a dropped request should
  * degrade to a tinted placeholder rather than a broken-image icon.
  */
-export default function SmartImage({ src, alt, className = '', seed = '', priority = false }: Props) {
+export default function SmartImage({ src, srcSet, sizes, alt, className = '', seed = '', priority = false }: Props) {
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>(src ? 'loading' : 'failed')
   const gradient = GRADIENTS[(seed.length + alt.length) % GRADIENTS.length]
   const position = POSITIONED.test(className) ? '' : 'relative'
@@ -53,6 +56,8 @@ export default function SmartImage({ src, alt, className = '', seed = '', priori
       {state === 'loading' && <div className="shimmer absolute inset-0" />}
       <img
         src={src}
+        srcSet={srcSet}
+        sizes={srcSet ? sizes : undefined}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         fetchPriority={priority ? 'high' : 'auto'}
