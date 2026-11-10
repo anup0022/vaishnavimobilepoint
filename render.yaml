@@ -8,18 +8,23 @@
 # restart and 15-minute idle spin-down; the catalogue and settings re-seed
 # from server/db.js on the next boot.
 #
-# EPHEMERAL=true below is what makes that safe rather than silently lossy:
-# the booking, contact and review endpoints return 503 and the storefront
-# offers WhatsApp and the phone number in their place, so no customer is
-# ever handed a ticket number for a job the shop will never see. Repair
-# tracking by ticket number needs data that survives a restart, so it stays
-# on WhatsApp too until the database has somewhere permanent to live.
+# What keeps the data anyway, for free: Litestream (litestream.yml,
+# vmp-entrypoint.sh) restores the database from S3-compatible object storage
+# on every boot and streams each change back within about a second. Product
+# photos are stored in the database, so they are covered too. It switches on
+# when these are set in the dashboard's Environment tab — they are secrets,
+# so they are deliberately not declared here:
 #
-# Once it does — a persistent disk (paid plans) or free external storage —
-# set EPHEMERAL to "false" and the forms and tracking come back on their own.
-# The container already starts as root just long enough to hand DATA_DIR and
-# UPLOAD_DIR to the `node` user (vmp-entrypoint.sh), which a freshly mounted
-# disk needs.
+#   LITESTREAM_REPLICA_URL        s3://<bucket>/vaishnavi?endpoint=<https://...>&region=<region>
+#   LITESTREAM_ACCESS_KEY_ID      a key that can only reach that bucket
+#   LITESTREAM_SECRET_ACCESS_KEY
+#
+# EPHEMERAL=true below describes the host. On its own it switches the
+# booking, contact and review forms and repair tracking over to WhatsApp, so
+# no customer is handed a ticket number for a job about to be wiped. Once
+# LITESTREAM_REPLICA_URL is set the data is safe and they come back by
+# themselves (server/util.js). If the storage cannot be reached at boot, the
+# container stops rather than start on an empty database.
 
 services:
   - type: web
@@ -38,7 +43,8 @@ services:
       - key: NODE_ENV
         value: production
 
-      # Remove (or set to "false") once the data is kept somewhere permanent.
+      # The free plan's disk is wiped. Forms and tracking still work once
+      # Litestream is configured (see the note at the top).
       - key: EPHEMERAL
         value: "true"
 

@@ -146,6 +146,21 @@ app.use(
   }),
 )
 
+/*
+ * New uploads are stored in the database (so the backup that protects
+ * bookings protects them too); photos from before that are still served from
+ * the folder above. Only sniffed image types are ever stored, and names are
+ * random and never reused, so they can be cached for a long time.
+ */
+app.get('/uploads/:name', (req, res) => {
+  const row = db.prepare('SELECT mime, data FROM uploads WHERE name = ?').get(req.params.name)
+  if (!row) return res.status(404).type('text/plain').send('Not found')
+  res.setHeader('Content-Type', row.mime)
+  res.setHeader('Cache-Control', 'public, max-age=604800, immutable')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.send(Buffer.from(row.data))
+})
+
 // Anything under /api that got this far does not exist. Answer with JSON
 // rather than falling through to the SPA's index.html.
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Unknown endpoint.' }))

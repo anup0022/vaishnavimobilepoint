@@ -149,11 +149,21 @@ from the CMS.
 
 `render.yaml` is a Render Blueprint for a single Docker web service on the free
 plan, on the domain `vaishnavimobilepoint.in`. A free instance has no persistent
-disk: the database and uploads (`DATA_DIR`, `UPLOAD_DIR` under `/app/var`) are
-wiped on every deploy, restart and 15-minute idle spin-down. `EPHEMERAL=true`
-therefore switches the booking, contact and review forms, and repair tracking,
-over to WhatsApp and the phone number. Once the data lives somewhere permanent,
-set `EPHEMERAL` to `false` and they come back.
+disk: its filesystem is wiped on every deploy, restart and 15-minute idle
+spin-down.
+
+The data survives anyway through [Litestream](https://litestream.io): on boot the
+container restores the SQLite database from S3-compatible object storage, and
+while it runs every change is shipped back within about a second. Uploaded
+product photos are stored in the database, so they are covered too. Set
+`LITESTREAM_REPLICA_URL`, `LITESTREAM_ACCESS_KEY_ID` and
+`LITESTREAM_SECRET_ACCESS_KEY` in the service's Environment tab (see
+`litestream.yml`). If the storage cannot be reached at boot the container stops
+rather than start on an empty database.
+
+`EPHEMERAL=true` describes the host. Without Litestream configured it switches
+the booking, contact and review forms and repair tracking over to WhatsApp and
+the phone number; with it, they stay on.
 
 Pushes to `main` deploy automatically through Render's GitHub app, which is
 installed on this repository only. The staff password is `ADMIN_PASSWORD` in the

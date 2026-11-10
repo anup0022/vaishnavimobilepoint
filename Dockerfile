@@ -18,6 +18,24 @@ WORKDIR /app
 # the data folders writable — see vmp-entrypoint.sh.
 RUN apk add --no-cache su-exec
 
+# Litestream streams the SQLite database to object storage when
+# LITESTREAM_REPLICA_URL is set (vmp-entrypoint.sh, litestream.yml). Pinned to
+# a release and checked against its published SHA-256 for each architecture.
+ARG LITESTREAM_VERSION=0.5.18
+RUN set -eu; \
+    case "$(uname -m)" in \
+      x86_64)  arch=x86_64; sum=d3687b9fd0f2e9426bbd3da828429ff3f1dfc5c9b74d54fdf028e4ee510e7dea ;; \
+      aarch64) arch=arm64;  sum=922a09e6a7ac67f2095571894dc6382e94e1dd4cdd9674883ddf1a8e74ab982d ;; \
+      *) echo "no Litestream build for $(uname -m)" >&2; exit 1 ;; \
+    esac; \
+    wget -qO /tmp/litestream.tgz \
+      "https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-${arch}.tar.gz"; \
+    echo "${sum}  /tmp/litestream.tgz" | sha256sum -c -; \
+    tar -xzf /tmp/litestream.tgz -C /usr/local/bin litestream; \
+    rm /tmp/litestream.tgz; \
+    litestream version
+COPY litestream.yml /etc/litestream.yml
+
 COPY package.json ./
 RUN npm install --omit=dev --no-audit --no-fund
 

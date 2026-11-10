@@ -11,6 +11,9 @@ export const db = new DatabaseSync(path.join(DATA_DIR, 'vaishnavi.sqlite'))
 
 db.exec('PRAGMA journal_mode = WAL')
 db.exec('PRAGMA foreign_keys = ON')
+// Litestream checkpoints the WAL from its own connection; wait for it
+// rather than failing a request with SQLITE_BUSY.
+db.exec('PRAGMA busy_timeout = 5000')
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS admin_users (
@@ -108,6 +111,16 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
+);
+
+-- Product photos uploaded from the CMS. Kept in the database rather than a
+-- folder, so the continuous backup that protects bookings (Litestream, see
+-- vmp-entrypoint.sh) protects them too. Bytes are sniffed before insert.
+CREATE TABLE IF NOT EXISTS uploads (
+  name       TEXT PRIMARY KEY,
+  mime       TEXT NOT NULL,
+  data       BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);

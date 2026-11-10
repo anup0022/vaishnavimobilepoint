@@ -1,13 +1,20 @@
 import crypto from 'node:crypto'
 
 /**
- * The host's filesystem does not survive a restart (a Render free instance
- * spins down after 15 minutes idle). Bookings, enquiries and reviews are
- * written to SQLite and nowhere else, so when this is set those writes are
- * refused and the storefront offers WhatsApp and the phone number instead.
- * Unset it the moment the service has a persistent disk.
+ * EPHEMERAL=true says the host's filesystem does not survive a restart (a
+ * Render free instance is wiped on every deploy and 15-minute idle
+ * spin-down). Bookings, tickets, enquiries and reviews live in SQLite, so on
+ * such a host they would vanish.
+ *
+ * Unless Litestream is streaming that database to object storage
+ * (LITESTREAM_REPLICA_URL, see vmp-entrypoint.sh): then every change is off
+ * the machine within about a second and restored on the next boot, so the
+ * forms and repair tracking are safe to switch on. Only when the host is
+ * ephemeral AND nothing replicates the data are customer writes refused and
+ * WhatsApp offered instead.
  */
-export const EPHEMERAL = /^(1|true|yes)$/i.test(process.env.EPHEMERAL || '')
+export const REPLICATED = Boolean((process.env.LITESTREAM_REPLICA_URL || '').trim())
+export const EPHEMERAL = /^(1|true|yes)$/i.test(process.env.EPHEMERAL || '') && !REPLICATED
 
 /* ------------------------------------------------------------------ *
  * Passwords — scrypt from node:crypto, no native dependency needed.

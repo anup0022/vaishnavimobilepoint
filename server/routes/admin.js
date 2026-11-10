@@ -364,7 +364,9 @@ adminRouter.post('/upload', upload.single('image'), (req, res) => {
 
   // Name and extension are both ours. originalname is never used.
   const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${kind.ext}`
-  fs.writeFileSync(path.join(UPLOAD_DIR, filename), req.file.buffer, { mode: 0o644 })
+  // Into the database, not the uploads folder: on a host whose disk is wiped
+  // the folder would lose the photo, while the database is backed up.
+  db.prepare('INSERT INTO uploads (name, mime, data) VALUES (?, ?, ?)').run(filename, kind.mime, req.file.buffer)
 
   res.status(201).json({ ok: true, url: `/uploads/${filename}` })
 })

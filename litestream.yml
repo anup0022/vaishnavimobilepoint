@@ -1,0 +1,21 @@
+# Litestream — continuous backup of the SQLite database to S3-compatible
+# object storage, so a host that wipes its disk (Render's free plan, on every
+# deploy and idle spin-down) loses nothing: the database is restored on boot
+# and every change is shipped back within about a second.
+#
+# Used only when LITESTREAM_REPLICA_URL is set (vmp-entrypoint.sh). Every
+# value comes from the environment, so nothing account-specific is committed:
+#
+#   LITESTREAM_REPLICA_URL        s3://<bucket>/vaishnavi?endpoint=<https://s3 endpoint>&region=<region>
+#   LITESTREAM_ACCESS_KEY_ID      a key limited to that bucket
+#   LITESTREAM_SECRET_ACCESS_KEY
+#
+# Product photos are stored in the database too, so this covers them.
+
+access-key-id: ${LITESTREAM_ACCESS_KEY_ID}
+secret-access-key: ${LITESTREAM_SECRET_ACCESS_KEY}
+
+dbs:
+  - path: ${DATA_DIR}/vaishnavi.sqlite
+    replica:
+      url: ${LITESTREAM_REPLICA_URL}
