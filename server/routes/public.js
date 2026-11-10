@@ -259,7 +259,11 @@ publicRouter.post('/track', rateLimit({ key: 'track', max: 20, windowMs: 10 * 60
     return res.status(400).json({ error: 'The security code did not match. Please try the new code.' })
   }
 
-  const code = String(ticket || '').trim().toUpperCase()
+  // Customers type the ticket every which way: "vms-7k4pq2", "VMS 7K4PQ2",
+  // or just "7K4PQ2". Keep the letters and digits and put the prefix back.
+  const raw = String(ticket || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const part = raw.length === 9 && raw.startsWith('VMS') ? raw.slice(3) : raw
+  const code = part ? `VMS-${part}` : ''
   const cleanPhone = normalisePhone(phone)
 
   if (!code) return res.status(400).json({ error: 'Please enter your ticket number.' })
@@ -286,9 +290,6 @@ publicRouter.post('/track', rateLimit({ key: 'track', max: 20, windowMs: 10 * 60
       issue_type: booking.issue_type,
       issue_desc: booking.issue_desc,
       status: booking.status,
-      estimate_amount: booking.estimate_amount,
-      final_amount: booking.final_amount,
-      technician: booking.technician,
       created_at: booking.created_at,
       updated_at: booking.updated_at,
     },

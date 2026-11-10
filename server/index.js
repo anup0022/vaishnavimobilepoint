@@ -191,3 +191,21 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 server.headersTimeout = 20_000
 server.requestTimeout = 30_000
 server.keepAliveTimeout = 10_000
+
+/*
+ * Render and `docker stop` ask the process to stop with SIGTERM. As PID 1 in
+ * the container, Node ignores that signal unless it is handled, so every stop
+ * waited out the grace period and ended in a SIGKILL — and with a persistent
+ * disk attached, that wait is downtime on every deploy. Finish in-flight
+ * requests, close the database cleanly, and go; a client that will not let
+ * go gets five seconds.
+ */
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.once(signal, () => {
+    server.close(() => {
+      db.close()
+      process.exit(0)
+    })
+    setTimeout(() => process.exit(0), 5_000).unref()
+  })
+}

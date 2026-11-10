@@ -384,8 +384,10 @@ adminRouter.get('/bookings', (req, res) => {
     params.push(status)
   }
   if (q) {
-    where.push('(ticket LIKE ? OR customer_name LIKE ? OR phone LIKE ? OR device_model LIKE ?)')
-    params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`)
+    // IMEI too: the Track page tells customers who lost their ticket to call
+    // with it.
+    where.push('(ticket LIKE ? OR customer_name LIKE ? OR phone LIKE ? OR device_model LIKE ? OR imei LIKE ?)')
+    params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`)
   }
 
   const sql = `SELECT * FROM bookings ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY id DESC`
@@ -402,6 +404,12 @@ adminRouter.get('/bookings/:id', (req, res) => {
   res.json({ booking, updates })
 })
 
+/*
+ * Staff do one thing to a ticket: move it to a stage, optionally with a note
+ * the customer reads on /track. Tickets are opened only by online booking,
+ * and estimate, final amount and technician are not edited here — anything
+ * else in the body is ignored rather than written.
+ */
 adminRouter.patch('/bookings/:id', (req, res) => {
   const id = asInt(req.params.id)
   const booking = db.prepare('SELECT * FROM bookings WHERE id = ?').get(id)
@@ -413,25 +421,18 @@ adminRouter.patch('/bookings/:id', (req, res) => {
     return res.status(400).json({ error: 'Unknown status.' })
   }
 
-  db.prepare(`
-    UPDATE bookings SET status = ?, estimate_amount = ?, final_amount = ?, technician = ?, updated_at = datetime('now')
-    WHERE id = ?
-  `).run(
-    status,
-    asFloat(b.estimate_amount, booking.estimate_amount),
-    asFloat(b.final_amount, booking.final_amount),
-    String(b.technician ?? booking.technician).slice(0, 80),
-    id,
-  )
-
-  const note = String(b.note || '').trim()
-  if (status !== booking.status || note) {
-    db.prepare('INSERT INTO booking_updates (booking_id, status, note) VALUES (?, ?, ?)').run(
-      id, status, note || `Status changed to ${STATUS_LABELS[status] || status}.`,
-    )
+  // Capped by character, not UTF-16 unit, so an emoji is never cut in half.
+  const note = Array.from(String(b.note || '').trim()).slice(0, 1200).join('')
+  if (status === booking.status && !note) {
+    return res.status(400).json({ error: 'Choose a new status or write a note for the customer.' })
   }
 
-  res.json({ ok: true, message: 'Ticket updated — the customer can see this on the tracking page.' })
+  db.prepare("UPDATE bookings SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, id)
+  db.prepare('INSERT INTO booking_updates (booking_id, status, note) VALUES (?, ?, ?)').run(
+    id, status, note || `Status changed to ${STATUS_LABELS[status] || status}.`,
+  )
+
+  res.json({ ok: true, message: 'Status updated — the customer can see it on the tracking page.' })
 })
 
 adminRouter.delete('/bookings/:id', (req, res) => {

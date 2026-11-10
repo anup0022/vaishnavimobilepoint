@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Search, Trash2, Save, Phone, Mail, Smartphone, Hash, FileText, Send } from 'lucide-react'
+import { Search, Trash2, Save, Phone, Mail, Smartphone, FileText, Send } from 'lucide-react'
 import { api, ApiError, type Booking, type BookingUpdate } from '@/lib/api'
-import { formatDateTime, money } from '@/lib/format'
+import { formatDateTime, timeAgo } from '@/lib/format'
 import { useToast } from '@/components/Toast'
 import StatusBadge, { STATUS_META } from '@/components/StatusBadge'
 import Modal from '@/components/Modal'
@@ -100,14 +100,14 @@ export default function Bookings() {
           <p className="text-mist-400">No tickets in this view.</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {bookings.map((booking, i) => (
             <motion.div
               key={booking.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.3) }}
-              className="flex flex-col rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-600/45"
+              className="flex min-w-0 flex-col rounded-3xl border border-ink-700 bg-ink-900 lift p-6 transition hover:border-brand-600/45"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
@@ -120,19 +120,13 @@ export default function Bookings() {
               <dl className="mb-5 space-y-2 text-sm">
                 <Row icon={Smartphone} value={`${booking.device_brand} ${booking.device_model}`} />
                 <Row icon={FileText} value={booking.issue_type} />
-                <Row icon={Phone} value={`${booking.customer_name} · ${booking.phone}`} />
-                {booking.technician && <Row icon={Hash} value={booking.technician} />}
+                {/* Number first: a long name truncates, the number never does. */}
+                <Row icon={Phone} value={`${booking.phone} · ${booking.customer_name}`} />
               </dl>
 
               <div className="mt-auto flex items-center justify-between gap-3 border-t border-ink-700 pt-4">
-                <span className="text-sm">
-                  {booking.final_amount > 0 ? (
-                    <span className="font-semibold text-success">{money(booking.final_amount)}</span>
-                  ) : booking.estimate_amount > 0 ? (
-                    <span className="text-mist-300">Est. {money(booking.estimate_amount)}</span>
-                  ) : (
-                    <span className="text-mist-500">No estimate yet</span>
-                  )}
+                <span className="text-sm text-mist-500" title={formatDateTime(booking.updated_at)}>
+                  Updated {timeAgo(booking.updated_at)}
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -189,9 +183,9 @@ export default function Bookings() {
 
 function Row({ icon: Icon, value }: { icon: typeof Phone; value: string }) {
   return (
-    <div className="flex items-center gap-2.5 text-mist-300">
+    <div className="flex min-w-0 items-center gap-2.5 text-mist-300">
       <Icon size={14} className="shrink-0 text-mist-500" />
-      <span className="truncate">{value}</span>
+      <span className="min-w-0 truncate">{value}</span>
     </div>
   )
 }
@@ -205,9 +199,6 @@ function TicketModal({
   const [updates, setUpdates] = useState<BookingUpdate[]>([])
   const [status, setStatus] = useState(booking.status)
   const [note, setNote] = useState('')
-  const [estimate, setEstimate] = useState(booking.estimate_amount)
-  const [final, setFinal] = useState(booking.final_amount)
-  const [technician, setTechnician] = useState(booking.technician)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -221,13 +212,12 @@ function TicketModal({
     event.preventDefault()
     setSaving(true)
     try {
-      const r = await api.patch<{ message: string }>(`/api/admin/bookings/${booking.id}`, {
-        status,
-        note,
-        estimate_amount: estimate,
-        final_amount: final,
-        technician,
-      })
+      const r = await api.patch<{ message: string }>(
+        `/api/admin/bookings/${booking.id}`,
+        // Send a status only if it was picked here, so a note added from a
+        // dialog opened before someone else moved the ticket cannot move it back.
+        status !== booking.status ? { status, note } : { note },
+      )
       toast.push(r.message, 'success')
       onSaved()
     } catch (e) {
@@ -265,7 +255,8 @@ function TicketModal({
                   key={value}
                   type="button"
                   onClick={() => setStatus(value)}
-                  className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${ status === value ? meta.chip : 'border-ink-700 bg-ink-800 text-mist-400 hover:text-mist-50' }`}
+                  aria-pressed={status === value}
+                  className={`flex min-h-10 items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${ status === value ? meta.chip : 'border-ink-700 bg-ink-800 text-mist-400 hover:text-mist-50' }`}
                 >
                   <meta.icon size={13} />
                   {meta.label}
@@ -276,34 +267,21 @@ function TicketModal({
         </div>
 
         <div>
-          <label className="label">Note for the customer</label>
+          <label className="label" htmlFor="ticket-note">Note for the customer</label>
           <textarea
+            id="ticket-note"
             className="field min-h-24 resize-y"
             value={note}
+            maxLength={1200}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Shown on the tracking page. e.g. Display assembly confirmed faulty, original part ordered."
           />
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-3">
-          <div>
-            <label className="label">Estimate (₹)</label>
-            <input type="number" min={0} className="field" value={estimate} onChange={(e) => setEstimate(Number(e.target.value))} />
-          </div>
-          <div>
-            <label className="label">Final amount (₹)</label>
-            <input type="number" min={0} className="field" value={final} onChange={(e) => setFinal(Number(e.target.value))} />
-          </div>
-          <div>
-            <label className="label">Technician</label>
-            <input className="field" value={technician} onChange={(e) => setTechnician(e.target.value)} placeholder="e.g. Imran (Bench 2)" />
-          </div>
-        </div>
-
         <div className="flex justify-end gap-3 border-t border-ink-700 pt-6">
           <button type="button" onClick={onClose} className="btn-ghost px-5 py-2.5 text-sm">Cancel</button>
           <button type="submit" disabled={saving} className="btn-primary px-5 py-2.5 text-sm">
-            <Save size={16} /> {saving ? 'Saving…' : 'Save & notify'}
+            <Save size={16} /> {saving ? 'Saving…' : 'Update status'}
           </button>
         </div>
       </form>
@@ -322,7 +300,7 @@ function TicketModal({
                   <StatusBadge status={update.status} size="sm" />
                   <span className="text-xs text-mist-500">{formatDateTime(update.created_at)}</span>
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-mist-300">{update.note}</p>
+                <p className="mt-2 text-sm leading-relaxed text-mist-300 [overflow-wrap:anywhere]">{update.note}</p>
               </li>
             )
           })}

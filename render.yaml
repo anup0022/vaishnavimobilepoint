@@ -2,19 +2,24 @@
 #
 # Deploys the Docker image in ./Dockerfile as a single web service.
 #
-# NOTE ON DATA. The app keeps bookings, messages, reviews, stock and uploaded
-# photos on the local filesystem (SQLite + uploads/). Render's *free* instances
-# have an ephemeral filesystem: everything under DATA_DIR and UPLOAD_DIR is
-# wiped on every deploy, restart and 15-minute idle spin-down, and the catalogue
-# re-seeds itself from server/db.js on the next boot.
+# NOTE ON DATA. The app keeps bookings, repair tickets, messages, reviews and
+# uploaded photos on the local filesystem (SQLite + uploads/). This service
+# runs on Render's FREE plan, whose filesystem is wiped on every deploy,
+# restart and 15-minute idle spin-down; the catalogue and settings re-seed
+# from server/db.js on the next boot.
 #
-# EPHEMERAL=true below is what makes that safe rather than silently lossy: the
-# booking, contact and review endpoints return 503 and the storefront offers
-# WhatsApp and the phone number in their place, so no customer is ever handed a
-# ticket number for a job the shop will never see.
+# EPHEMERAL=true below is what makes that safe rather than silently lossy:
+# the booking, contact and review endpoints return 503 and the storefront
+# offers WhatsApp and the phone number in their place, so no customer is
+# ever handed a ticket number for a job the shop will never see. Repair
+# tracking by ticket number needs data that survives a restart, so it stays
+# on WhatsApp too until the database has somewhere permanent to live.
 #
-# To take the site fully live: switch `plan` to starter, uncomment the `disk`
-# block, and delete the EPHEMERAL variable. The forms come back on their own.
+# Once it does — a persistent disk (paid plans) or free external storage —
+# set EPHEMERAL to "false" and the forms and tracking come back on their own.
+# The container already starts as root just long enough to hand DATA_DIR and
+# UPLOAD_DIR to the `node` user (vmp-entrypoint.sh), which a freshly mounted
+# disk needs.
 
 services:
   - type: web
@@ -33,7 +38,7 @@ services:
       - key: NODE_ENV
         value: production
 
-      # Remove this once the service has a persistent disk.
+      # Remove (or set to "false") once the data is kept somewhere permanent.
       - key: EPHEMERAL
         value: "true"
 
@@ -60,10 +65,3 @@ services:
         generateValue: true
       - key: ADMIN_PASSWORD
         generateValue: true
-
-    # Paid plans only. One disk covers both the database and the uploads,
-    # which is why they share the /app/var parent above.
-    # disk:
-    #   name: vmp-data
-    #   mountPath: /app/var
-    #   sizeGB: 1

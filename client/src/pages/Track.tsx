@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Search, Ticket, Phone, RotateCcw, IndianRupee, UserCog, Smartphone, CalendarClock, Info,
+  Search, Ticket, Phone, RotateCcw, UserCog, Smartphone, CalendarClock, Info,
 } from 'lucide-react'
 import { api, ApiError, type BookingUpdate } from '@/lib/api'
 import { useCaptcha } from '@/lib/useCaptcha'
 import { useToast } from '@/components/Toast'
 import { useSettings } from '@/lib/useSettings'
-import { formatDateTime, money } from '@/lib/format'
+import { formatDateTime, mobileDigits, mobileInput } from '@/lib/format'
 import CaptchaBox from '@/components/CaptchaBox'
 import StatusBadge, { STATUS_META } from '@/components/StatusBadge'
 import Reveal from '@/components/Reveal'
@@ -22,9 +22,6 @@ interface TrackedBooking {
   issue_type: string
   issue_desc: string
   status: string
-  estimate_amount: number
-  final_amount: number
-  technician: string
   created_at: string
   updated_at: string
 }
@@ -39,21 +36,29 @@ export default function Track() {
   const settings = useSettings()
   const toast = useToast()
   const captcha = useCaptcha()
-  const [ticket, setTicket] = useState('')
+  const [params] = useSearchParams()
+  // "Track this repair" on the booking confirmation links here with ?ticket=.
+  const [ticket, setTicket] = useState(() => (params.get('ticket') || '').toUpperCase().slice(0, 12))
   const [phone, setPhone] = useState('')
+  const resultRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TrackResult | null>(null)
   const [error, setError] = useState('')
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
+    const mobile = mobileDigits(phone)
+    if (!mobile) {
+      setError('Enter the 10-digit mobile number you gave us when booking.')
+      return
+    }
     setLoading(true)
     setError('')
 
     try {
       const data = await api.post<TrackResult>('/api/track', {
         ticket,
-        phone,
+        phone: mobile,
         captchaId: captcha.id,
         captchaText: captcha.text,
       })
@@ -76,6 +81,12 @@ export default function Track() {
     setPhone('')
     captcha.refresh()
   }
+
+  // The result replaces the form further down the page; on a short phone it
+  // would otherwise start under the sticky header. scroll-mt clears it.
+  useEffect(() => {
+    if (result) resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [result])
 
   const flow = result?.statusFlow ?? []
   const currentIndex = result ? flow.indexOf(result.booking.status) : -1
@@ -142,10 +153,10 @@ export default function Track() {
                   <input
                     id="track-phone"
                     className="field text-center font-display text-xl font-bold tracking-widest"
-                    inputMode="numeric"
-                    maxLength={10}
+                    type="tel"
+                    inputMode="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    onChange={(e) => setPhone(mobileInput(e.target.value))}
                     placeholder="10-digit number"
                     required
                     autoComplete="off"
@@ -185,10 +196,11 @@ export default function Track() {
           ) : (
             <motion.div
               key="result"
+              ref={resultRef}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mt-12"
+              className="mt-12 scroll-mt-32"
             >
               {/* summary */}
               <div className="rounded-[2rem] border border-ink-700 bg-ink-900 lift p-7 backdrop-blur sm:p-9">
@@ -203,20 +215,9 @@ export default function Track() {
                   <StatusBadge status={result.booking.status} />
                 </div>
 
-                <div className="mt-8 grid gap-5 border-t border-ink-700 pt-7 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-8 grid gap-5 border-t border-ink-700 pt-7 sm:grid-cols-3">
                   <Detail icon={Smartphone} label="Device" value={result.booking.device} />
                   <Detail icon={UserCog} label="Service" value={result.booking.issue_type} />
-                  <Detail
-                    icon={IndianRupee}
-                    label={result.booking.final_amount > 0 ? 'Final amount' : 'Estimate'}
-                    value={
-                      result.booking.final_amount > 0
-                        ? money(result.booking.final_amount)
-                        : result.booking.estimate_amount > 0
-                          ? money(result.booking.estimate_amount)
-                          : 'Pending diagnosis'
-                    }
-                  />
                   <Detail
                     icon={CalendarClock}
                     label="Last updated"
@@ -238,7 +239,37 @@ export default function Track() {
               {!cancelled && (
                 <div className="mt-8 rounded-[2rem] border border-ink-700 bg-ink-900 lift p-7 backdrop-blur sm:p-9">
                   <h2 className="mb-8 font-display text-xl font-bold">Repair progress</h2>
-                  <div className="flex items-center">
+
+                  {/* Phones: one stage per row. Six labels side by side at
+                      this width overlap into one unreadable run of text. */}
+                  <ol className="space-y-3 sm:hidden">
+                    {flow.map((status, i) => {
+                      const meta = STATUS_META[status]
+                      const reached = i <= currentIndex
+                      const isCurrent = i === currentIndex
+                      return (
+                        <li key={status} className="flex items-center gap-3" aria-current={isCurrent ? 'step' : undefined}>
+                          <span
+                            className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${ reached ? 'border-transparent bg-brand-600 text-white' : 'border-ink-700 bg-ink-800 text-mist-500' }`}
+                          >
+                            {isCurrent && <span className="absolute inset-0 rounded-full bg-brand-500/40 animate-pulse-ring" />}
+                            <meta.icon size={15} className="relative" />
+                          </span>
+                          <span className={`text-sm ${ isCurrent ? 'font-bold text-mist-50' : reached ? 'font-medium text-mist-200' : 'text-mist-500' }`}>
+                            {meta.label}
+                            {isCurrent && (
+                              <>
+                                {' '}
+                                <span className="ml-1 text-xs font-semibold text-brand-700">Now</span>
+                              </>
+                            )}
+                          </span>
+                        </li>
+                      )
+                    })}
+                  </ol>
+
+                  <div className="hidden items-center sm:flex">
                     {flow.map((status, i) => {
                       const meta = STATUS_META[status]
                       const reached = i <= currentIndex
@@ -277,7 +308,7 @@ export default function Track() {
                       )
                     })}
                   </div>
-                  <div className="h-14" />
+                  <div className="hidden h-14 sm:block" />
                 </div>
               )}
 
@@ -305,7 +336,7 @@ export default function Track() {
                           <StatusBadge status={update.status} size="sm" />
                           <span className="text-xs text-mist-500">{formatDateTime(update.created_at)}</span>
                         </div>
-                        <p className="mt-2.5 text-sm leading-relaxed text-mist-200">{update.note}</p>
+                        <p className="mt-2.5 text-sm leading-relaxed text-mist-200 [overflow-wrap:anywhere]">{update.note}</p>
                       </motion.li>
                     )
                   })}
@@ -321,7 +352,8 @@ export default function Track() {
                 >
                   <h3 className="font-display text-2xl font-bold text-success">Your device is ready</h3>
                   <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-mist-200">
-                    Collect it from the counter any day between {settings.hours_weekday}. Please carry this ticket
+                    Collect it from the counter Monday to Saturday, {settings.hours_weekday}, or on Sunday,{' '}
+                    {settings.hours_sunday}. Please carry this ticket
                     number and a photo ID.
                   </p>
                 </motion.div>

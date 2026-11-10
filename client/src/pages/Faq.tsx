@@ -11,7 +11,7 @@ const FAQS = [
   { q: 'Do I need an appointment for a repair?',
     a: 'No. You can walk in any day during opening hours. Booking online simply means we reserve bench time for you and you get a ticket number to track the job, which saves waiting at the counter.' },
   { q: 'How does the repair tracking work?',
-    a: 'Every device we take in gets a ticket number such as VMS-7K4PQ2. Enter that ticket plus the mobile number you registered on the Track page and you will see the current stage, our technician notes and the estimate. Both the ticket and the phone number have to match, so nobody else can look up your repair.' },
+    a: 'Every repair booked online gets a ticket number such as VMS-7K4PQ2. Enter that ticket plus the mobile number you booked with on the Track page and you will see the current stage and every note our bench has added. Both the ticket and the phone number have to match, so nobody else can look up your repair.' },
   { q: 'Are the spare parts genuine?',
     a: 'We use original or service-pack parts for every brand we stock, and the part type is written on your warranty slip. If a genuine part is unavailable for an older model we will tell you before fitting an alternative, and price it accordingly.' },
   { q: 'What warranty do I get on a repair?',

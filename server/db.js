@@ -396,6 +396,17 @@ function seedIfEmpty() {
     )
   })
 
+  /*
+   * Sample repair tickets and a sample enquiry, so every CMS screen has
+   * something to show while developing. Never in production: with a
+   * persistent disk they would sit in the shop's real ticket list and inbox
+   * for good, under made-up customers and phone numbers.
+   */
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[seed] ${PRODUCTS.length} products, ${FEEDBACK.length} reviews inserted (no sample tickets in production)`)
+    return
+  }
+
   const insertBooking = db.prepare(`
     INSERT INTO bookings (ticket, customer_name, phone, email, device_brand, device_model, imei, issue_type, issue_desc, preferred_date, status, estimate_amount, final_amount, technician, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', ?), datetime('now', ?))

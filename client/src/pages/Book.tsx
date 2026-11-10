@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -8,6 +8,7 @@ import { api, ApiError } from '@/lib/api'
 import { useCaptcha } from '@/lib/useCaptcha'
 import { useToast } from '@/components/Toast'
 import { useSettings } from '@/lib/useSettings'
+import { mobileDigits, mobileInput } from '@/lib/format'
 import CaptchaBox from '@/components/CaptchaBox'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
@@ -53,12 +54,21 @@ export default function Book() {
     api.get<{ issueTypes: string[] }>('/api/service-options').then((d) => setIssueTypes(d.issueTypes)).catch(() => {})
   }, [])
 
+  // The confirm button sits at the bottom of a long form, so the ticket
+  // number — the one thing the customer must keep — used to render out of
+  // view, under the sticky header. Centre the number itself: scrolling to the
+  // top was not enough on short phones, where it sat below the fold.
+  const ticketRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (ticket) ticketRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [ticket])
+
   function set<K extends keyof Form>(key: K, value: Form[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
   function stepValid(which: number) {
-    if (which === 1) return form.name.trim().length >= 2 && form.phone.replace(/\D/g, '').length === 10
+    if (which === 1) return form.name.trim().length >= 2 && mobileDigits(form.phone) !== ''
     if (which === 2) return !!form.deviceBrand && form.deviceModel.trim().length >= 2
     return !!form.issueType
   }
@@ -71,6 +81,7 @@ export default function Book() {
     try {
       const result = await api.post<{ ticket: string; message: string }>('/api/bookings', {
         ...form,
+        phone: mobileDigits(form.phone),
         captchaId: captcha.id,
         captchaText: captcha.text,
       })
@@ -109,9 +120,11 @@ export default function Book() {
             it, along with your mobile number, to track the repair.
           </p>
 
-          <div className="my-9 rounded-2xl border border-dashed border-brand-600/35 bg-brand-600/5 p-7">
+          <div ref={ticketRef} className="my-9 rounded-2xl border border-dashed border-brand-600/35 bg-brand-600/5 p-7">
             <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-mist-400">Your ticket number</div>
-            <div className="font-display text-4xl font-extrabold tracking-tight text-brand-600 sm:text-5xl">{ticket}</div>
+            <div className="whitespace-nowrap font-display text-3xl font-extrabold tracking-tight text-brand-600 sm:text-5xl">
+              {ticket}
+            </div>
             <button
               onClick={() => {
                 navigator.clipboard?.writeText(ticket)
@@ -125,7 +138,7 @@ export default function Book() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <Magnetic>
-              <Link to="/track" className="btn-primary">
+              <Link to={`/track?ticket=${encodeURIComponent(ticket)}`} className="btn-primary">
                 <Search size={18} /> Track this repair
               </Link>
             </Magnetic>
@@ -235,12 +248,17 @@ export default function Book() {
                     <div>
                       <label className="label" htmlFor="phone">Mobile number *</label>
                       <input
-                        id="phone" className="field" inputMode="numeric" maxLength={10} required
+                        id="phone" className="field" type="tel" inputMode="tel" required
                         value={form.phone}
-                        onChange={(e) => set('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onChange={(e) => set('phone', mobileInput(e.target.value))}
                         placeholder="10-digit number"
                       />
-                      <p className="mt-2 text-xs text-mist-500">You will need this number to track the repair.</p>
+                      {/* Continue stays disabled until this is a mobile number; say why. */}
+                      <p className="mt-2 text-xs text-mist-500">
+                        {form.phone && !mobileDigits(form.phone)
+                          ? 'Enter a 10-digit mobile number, e.g. 98765 43210 (with or without +91).'
+                          : 'You will need this number to track the repair.'}
+                      </p>
                     </div>
                     <div>
                       <label className="label" htmlFor="email">Email (optional)</label>

@@ -9,6 +9,25 @@ export function money(value: number | string | undefined | null): string {
   return inr.format(Number.isFinite(n) ? n : 0)
 }
 
+/**
+ * The ten digits of an Indian mobile number however it was typed or pasted:
+ * "98765 43210", "+91 98765 43210" and "098765 43210" all give 9876543210.
+ * Returns '' when what is left is not ten digits, rather than guessing which
+ * ten were meant — a wrong number here is a lookup that silently fails.
+ */
+export function mobileDigits(value: string): string {
+  let digits = value.replace(/\D/g, '')
+  if (digits.length === 14 && digits.startsWith('0091')) digits = digits.slice(4)
+  else if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2)
+  else if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1)
+  return digits.length === 10 ? digits : ''
+}
+
+/** What a mobile-number field accepts while typing: digits, +, spaces, dashes. */
+export function mobileInput(value: string): string {
+  return value.replace(/[^\d+\s-]/g, '').slice(0, 20)
+}
+
 export function compactNumber(value: number): string {
   return new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
 }
