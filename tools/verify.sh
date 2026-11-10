@@ -57,7 +57,7 @@ import sys,re,json
 m=re.search(r'<script type=\"application/ld\+json\">(.*?)</script>',sys.stdin.read(),re.S)
 d=json.loads(m.group(1)); t=d.get('telephone')
 print(re.sub(r'\\D','',' '.join(t if isinstance(t,list) else [t or ''])))")
-check "JSON-LD carries the shop phone"  "9122266800"                  "$JSONLD_DIGITS"
+check "JSON-LD carries the shop phone"  "9122266808"                  "$JSONLD_DIGITS"
 ROBOTS=$(curl -s "$BASE/robots.txt")
 check "robots.txt allows crawling"      "User-agent"                  "$ROBOTS"
 check "robots.txt points to sitemap"    "sitemap"                     "$(printf "%s" "$ROBOTS" | tr "[:upper:]" "[:lower:]")"
@@ -133,7 +133,7 @@ check "/api/stats returns counts"      '"products"'     "$(curl -s "$BASE/api/st
 check "/api/service-options"           "["              "$(curl -s "$BASE/api/service-options")"
 SETTINGS=$(curl -s "$BASE/api/settings")
 check  "/api/settings has shop name"   "Vaishnavi Mobile Point" "$SETTINGS"
-check  "/api/settings has phone"       "9122266800"             "$SETTINGS"
+check  "/api/settings has phone"       "9122266808"             "$SETTINGS"
 absent "settings never expose a hash"  "password_hash"          "$SETTINGS"
 
 head_ "Repair tracking (CAPTCHA + ticket + phone)"

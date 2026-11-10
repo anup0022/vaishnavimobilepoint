@@ -83,7 +83,7 @@ for (const [device, width, height, isMobile] of [
   await page.fill('input[name="name"], #name', 'Test Customer').catch(() => {})
   const nameBox = page.locator('input').first()
   await nameBox.fill('Test Customer')
-  await page.locator('input[inputmode="numeric"], input[type="tel"]').first().fill('9122266800')
+  await page.locator('input[inputmode="numeric"], input[type="tel"]').first().fill('9122266808')
   await page.waitForTimeout(300)
   const next = page.getByRole('button', { name: /continue|next/i }).first()
   const canAdvance = await next.isEnabled().catch(() => false)

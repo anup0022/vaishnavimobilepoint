@@ -5,8 +5,8 @@ import { api, type Settings } from './api'
 const DEFAULTS: Settings = {
   shop_name: 'Vaishnavi Mobile Point',
   tagline: 'Mobile Service Center — we deal in all kinds of mobile & accessories',
-  phone_primary: '+91 91222 66800',
-  whatsapp: '919122266800',
+  phone_primary: '+91 91222 66808',
+  whatsapp: '919122266808',
   email: 'care@vaishnavimobile.in',
   address_line1: 'Churi Centre Lane (Churi Centre Gali)',
   address_line2: 'Opp Galaxia Mall, Ratu Road, Sukhdeo Nagar',

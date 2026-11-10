@@ -159,9 +159,9 @@ const DEFAULT_SETTINGS = {
   hero_heading: 'Every phone you want. Every repair you need.',
   hero_sub:
     'Latest smartphones, genuine accessories and same-day repairs — in Churi Centre Gali, just off Ratu Road, Ranchi. Serving Ranchi since 2005.',
-  phone_primary: '+91 91222 66800',
-  phone_secondary: '+91 88773 33044',
-  whatsapp: '919122266800',
+  phone_primary: '+91 91222 66808',
+  phone_secondary: '+91 93040 47196',
+  whatsapp: '919122266808',
   email: 'care@vaishnavimobile.in',
   address_line1: 'Churi Centre Lane (Churi Centre Gali)',
   address_line2: 'Opp Galaxia Mall, Ratu Road, Sukhdeo Nagar',

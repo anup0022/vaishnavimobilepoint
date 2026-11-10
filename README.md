@@ -95,7 +95,7 @@ The shop's own details live in the database and are editable from
 | Address | Churi Centre Lane, opp Galaxia Mall, Ratu Road, Sukhdeo Nagar, Ranchi, Jharkhand 834005 |
 | Coordinates | 23.3818672, 85.300538 |
 | Plus Code | 98J2+P6 Ranchi |
-| Phone | +91 91222 66800, +91 88773 33044 |
+| Phone | +91 91222 66808, +91 93040 47196 |
 | Established | 2005 |
 
 The maps use the coordinates rather than a text search, so the pin lands on the

@@ -130,7 +130,7 @@ const TEXT = {
   eyebrow: 'RATU ROAD, RANCHI  ·  SINCE 2005',
   headline: 'Sales. Repairs. Accessories.',
   sub: 'Same-day screen & battery replacement · Genuine parts · Written warranty',
-  phone: '+91 91222 66800',
+  phone: '+91 91222 66808',
 }
 
 console.log('Building banners from the shop photograph:')
