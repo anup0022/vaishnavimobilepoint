@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { cookies } from './util.js'
 import { publicRouter } from './routes/public.js'
 import { adminRouter } from './routes/admin.js'
-import { robotsTxt, sitemapXml, injectSeo } from './seo.js'
+import { robotsTxt, sitemapXml, renderPage, ANALYTICS_ID } from './seo.js'
 import { db } from './db.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -64,16 +64,27 @@ if (TRUST_PROXY && TRUST_PROXY !== 'false') {
    falls back to default-src and the hero renders as an empty frame. */
 const HERO_MEDIA = 'https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/'
 
+/* Google Analytics 4 (gtag.js), only once GA_MEASUREMENT_ID is set — the
+   hosts Google lists for a CSP with the Google tag. Until then the policy is
+   exactly what it was. */
+const GA = ANALYTICS_ID
+  ? {
+      script: ' https://*.googletagmanager.com',
+      img: ' https://*.google-analytics.com https://*.googletagmanager.com',
+      connect: ' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com',
+    }
+  : { script: '', img: '', connect: '' }
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  `script-src 'self'${GA.script}`,
   // Framer Motion animates through inline style attributes, so this cannot be
   // dropped without rewriting the animation layer.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  `img-src 'self' data: blob: https://images.unsplash.com https://i.pravatar.cc ${HERO_MEDIA}`,
+  `img-src 'self' data: blob: https://images.unsplash.com https://i.pravatar.cc ${HERO_MEDIA}${GA.img}`,
   `media-src 'self' ${HERO_MEDIA}`,
-  "connect-src 'self'",
+  `connect-src 'self'${GA.connect}`,
   "frame-src https://maps.google.com https://www.google.com",
   "form-action 'self'",
   "base-uri 'self'",
@@ -153,7 +164,10 @@ if (fs.existsSync(CLIENT_DIST)) {
   // The shell is read once and then stamped per-request with the canonical URL
   // and the shop's LocalBusiness markup.
   const shell = fs.readFileSync(path.join(CLIENT_DIST, 'index.html'), 'utf8')
-  app.get('*', (req, res) => res.type('html').send(injectSeo(shell, req)))
+  app.get('*', (req, res) => {
+    const page = renderPage(shell, req)
+    res.status(page.status).type('html').send(page.html)
+  })
 } else {
   app.get('*', (_req, res) =>
     res

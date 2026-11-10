@@ -9,6 +9,8 @@ import { api, ApiError, type Product } from '@/lib/api'
 import { money, AVAILABILITY_LABELS, CATEGORY_LABELS } from '@/lib/format'
 import { galleryFor } from '@/lib/gallery'
 import { useSettings, whatsappLink } from '@/lib/useSettings'
+import { applyNotFoundMeta, applyProductMeta } from '@/lib/pageMeta'
+import { trackPageView } from '@/lib/analytics'
 import SmartImage from '@/components/SmartImage'
 import ProductCard from '@/components/ProductCard'
 import Reveal from '@/components/Reveal'
@@ -36,8 +38,14 @@ export default function ProductDetail() {
       .then((d) => {
         setProduct(d.product)
         setRelated(d.related)
+        applyProductMeta(d.product.name, d.product.description)
+        trackPageView()
       })
-      .catch((e: ApiError) => setError(e.message))
+      .catch((e: ApiError) => {
+        setError(e.message)
+        applyNotFoundMeta()
+        trackPageView()
+      })
       .finally(() => setLoading(false))
   }, [slug])
 

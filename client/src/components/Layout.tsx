@@ -5,9 +5,20 @@ import Nav from './Nav'
 import Footer from './Footer'
 import { ScrollProgress, CursorGlow, Preloader } from './Chrome'
 import FloatingActions from './FloatingActions'
+import { applyPageMeta } from '@/lib/pageMeta'
+import { trackPageView } from '@/lib/analytics'
 
 export default function Layout() {
   const location = useLocation()
+
+  // Title and description for the page now showing, then the page view, so
+  // analytics files it under the right name. Product pages do both once
+  // their product has loaded, because only then is the name known.
+  useEffect(() => {
+    if (/^\/products\/[^/]+/.test(location.pathname)) return
+    applyPageMeta(location.pathname)
+    trackPageView()
+  }, [location.pathname])
 
   // Every route starts at the top rather than keeping the old scroll offset —
   // unless the URL points at a section, which must win over the reset.
