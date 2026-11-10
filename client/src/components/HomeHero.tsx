@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { useSettings } from '@/lib/useSettings'
 import './HomeHero.css'
 
+/* The CSP in server/index.js (HERO_MEDIA) allowlists this CloudFront folder
+   for img-src and media-src. Move the files and that line has to move too. */
 const CLIP_1080 =
   'https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/e02bb27f-80d8-445f-a03e-1b609dac4261.mp4'
 const CLIP_720 =

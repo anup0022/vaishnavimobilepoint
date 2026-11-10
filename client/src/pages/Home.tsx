@@ -15,7 +15,6 @@ import ProductCard from '@/components/ProductCard'
 import Magnetic from '@/components/Magnetic'
 import SmartImage from '@/components/SmartImage'
 import HomeHero from '@/components/HomeHero'
-import FestiveHero from '@/components/FestiveHero'
 import HomeTrust from '@/components/HomeTrust'
 import SectionNav, { type SectionDef } from '@/components/SectionNav'
 import './Home.css'
@@ -29,10 +28,6 @@ const SECTIONS: SectionDef[] = [
   { id: 'why', label: 'Why us' },
   { id: 'visit', label: 'Visit us' },
 ]
-
-/* Diwali takeover. Flip to false to put the scroll-track hero back; after
-   the festival the two FestiveHero files can be deleted outright. */
-const FESTIVE_HERO = true
 
 /* The four jobs the bench is known for, dealt out as a deck over the
    pinned scene. Four because the fan is cut for four — past that the
@@ -166,7 +161,7 @@ export default function Home() {
       <SectionNav sections={SECTIONS} />
 
       {/* ------------------------------- hero ------------------------------ */}
-      {FESTIVE_HERO ? <FestiveHero /> : <HomeHero />}
+      <HomeHero />
 
       {/* ---------------------------- testimonials -------------------------- */}
       <HomeTrust reviews={reviews} />
