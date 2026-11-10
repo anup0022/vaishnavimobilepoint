@@ -7,7 +7,7 @@ const DEFAULTS: Settings = {
   tagline: 'Mobile Service Center — we deal in all kinds of mobile & accessories',
   phone_primary: '+91 91222 66808',
   whatsapp: '919122266808',
-  email: 'care@vaishnavimobile.in',
+  email: 'rajeev.9x@gmail.com',
   address_line1: 'Churi Centre Lane (Churi Centre Gali)',
   address_line2: 'Opp Galaxia Mall, Ratu Road, Sukhdeo Nagar',
   city: 'Ranchi',

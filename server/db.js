@@ -175,7 +175,7 @@ const DEFAULT_SETTINGS = {
   phone_primary: '+91 91222 66808',
   phone_secondary: '+91 93040 47196',
   whatsapp: '919122266808',
-  email: 'care@vaishnavimobile.in',
+  email: 'rajeev.9x@gmail.com',
   address_line1: 'Churi Centre Lane (Churi Centre Gali)',
   address_line2: 'Opp Galaxia Mall, Ratu Road, Sukhdeo Nagar',
   city: 'Ranchi',
@@ -197,7 +197,7 @@ const DEFAULT_SETTINGS = {
   about_body:
     'Vaishnavi Mobile Point sells authorised stock from every major brand, and our in-house service bench handles everything from a cracked display to a dead motherboard. Each repair is logged against a ticket number so you can follow the progress from your phone, and every device leaves with a written warranty.',
   social_facebook: 'https://facebook.com/',
-  social_instagram: 'https://instagram.com/',
+  social_instagram: 'https://www.instagram.com/rajeev.9x/',
   social_youtube: 'https://youtube.com/',
   stats_customers: '24000',
   stats_repairs: '38500',
@@ -365,6 +365,18 @@ function seedIfEmpty() {
 
   for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
     if (getSetting(key) === null) setSetting(key, value)
+  }
+
+  // Placeholders that shipped as defaults before the shop's real details
+  // were known. The database is kept now (Litestream), so seeding alone never
+  // reaches it: swap a value that is still the old placeholder, and leave
+  // anything staff have saved under Site Content alone.
+  const PLACEHOLDERS = [
+    ['email', 'care@vaishnavimobile.in'],
+    ['social_instagram', 'https://instagram.com/'],
+  ]
+  for (const [key, placeholder] of PLACEHOLDERS) {
+    if (getSetting(key) === placeholder) setSetting(key, DEFAULT_SETTINGS[key])
   }
 
   if (hasProducts) return
