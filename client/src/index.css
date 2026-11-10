@@ -1,75 +1,68 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------ *
- * Design tokens — Bench: a dark studio.
+ * Design tokens — two palettes over one set of names.
  *
- * Two lights define everything: a warm key (`--color-key`, amber) and a
- * cold rim (`brand-*`, blue). Surfaces are matte, never glass — a blurred
- * pane over a dark page reads as grey mud, and backdrop-filter is GPU
- * work this shop's budget-Android customers pay for on every frame.
+ * The storefront is the light store look: a white page, black type, square
+ * black buttons and a teal accent, in Jost. That is the default below, so a
+ * shopper's first paint is already white.
+ *
+ * The staff CMS keeps Bench, the dark studio. `theme-admin` on <html>
+ * swaps its palette in (base layer, further down). The server stamps that
+ * class on /admin pages, and ThemeSync keeps it right on client-side moves
+ * between the two.
  *
  * `ink-*` is the surface ramp (950 = page, 900/850 = panels, 800 = fills,
- * 700/600/500 = lines) and `mist-*` is the type ramp (50 = brightest,
- * 500 = faintest). Every component is written against those two scales,
- * so the whole site — storefront and CMS — re-themes from this block.
+ * 700/600/500 = lines) and `mist-*` is the type ramp (50 = strongest,
+ * 500 = faintest). Every component is written against those two scales, so
+ * each side re-themes from its block. The roles are the same on both:
+ *
+ *   brand-600   every interactive fill, border and ring
+ *   brand-700   every interactive label, icon and link
+ *   key         the primary action and emphasis — black in the store,
+ *               the warm amber key light in the CMS
+ *   success /
+ *   warn /
+ *   danger      status and destructive actions only
  * ------------------------------------------------------------------ */
 
 @theme {
-  --color-ink-950: #0a0c10; /* stage, behind everything */
-  --color-ink-900: #14181f; /* panels                   */
-  --color-ink-850: #11151c; /* nested / secondary panes */
-  --color-ink-800: #1a1f29; /* chips, small fills       */
-  --color-ink-700: #222835; /* the edge of a panel      */
-  --color-ink-600: #2c3342; /* a stronger line          */
-  --color-ink-500: #3a4254;
+  /* Storefront. Every type step clears 4.5:1 on ink-950 (white) and on
+     ink-900 (the panel grey); mist-500 is the floor at 4.9:1 there. */
+  --color-ink-950: #ffffff; /* page                     */
+  --color-ink-900: #f7f7f7; /* panels                   */
+  --color-ink-850: #f2f2f2; /* nested / secondary panes */
+  --color-ink-800: #ededed; /* chips, small fills       */
+  --color-ink-700: #e3e3e3; /* the edge of a panel      */
+  --color-ink-600: #d2d2d2; /* a stronger line          */
+  --color-ink-500: #b9b9b9;
 
-  /* Every step clears 4.5:1 on ink-950 and on ink-900. mist-500 is the
-     floor at 4.8:1 — nothing below it is allowed to carry meaning. */
-  --color-mist-50:  #f2f5fa; /* headings  */
-  --color-mist-200: #d6dce8; /* strong    */
-  --color-mist-300: #b3bccd; /* secondary */
-  --color-mist-400: #8b94a6; /* body      */
-  --color-mist-500: #737d91; /* captions  */
+  --color-mist-50:  #000000; /* headings  */
+  --color-mist-200: #1f1f1f; /* strong    */
+  --color-mist-300: #3a3a3a; /* secondary */
+  --color-mist-400: #555555; /* body      */
+  --color-mist-500: #6b6b6b; /* captions  */
 
-  /* The cold rim light. Inverted against the old light theme: 700 is now
-     the *lightest* step, because accent text on a dark surface has to
-     rise off the page rather than sink into it.
+  /* The store's teal: bright for decoration, deep enough for text. */
+  --color-brand-50:  #eaf6fb;
+  --color-brand-100: #d3edf7;
+  --color-brand-500: #2dbbf0;
+  --color-brand-600: #007ba8;
+  --color-brand-700: #006690;
 
-     These two ramps carry one role each, and mixing them is what made the
-     site read as four different products:
+  --color-key:     #000000;
+  --color-key-dim: #333333;
+  /* Type that sits on the key fill. */
+  --color-key-ink: #ffffff;
 
-       brand-600   every interactive fill, border and ring
-       brand-700   every interactive label, icon and link
-       key         emphasis only — the primary button, prices, highlights
-                   inside a heading. Never a hover or focus colour.
-       success /
-       warn /
-       danger      status and destructive actions only.
+  --color-success: #0b7d55;
+  --color-warn:    #a65a00;
+  --color-danger:  #c62f25;
 
-     brand-500 exists for the CMS charts; nothing interactive should use
-     it, or the same control ends up two different blues on two pages. */
-  --color-brand-50:  #0e1b2b;
-  --color-brand-100: #15293f;
-  --color-brand-500: #4f9bf0;
-  --color-brand-600: #2a7de1;
-  --color-brand-700: #7cb8f7;
-
-  /* The warm key light. The signature of this direction. */
-  --color-key:     #f0a54a;
-  --color-key-dim: #b87a2e;
-  /* Type that sits *on* the key fill. Fixed, because --color-key is the
-     one surface that does not flip with the light homepage theme — use
-     ink-950 here and the label turns near-white on amber at 1.7:1. */
-  --color-key-ink: #0a0c10;
-
-  --color-success: #35e0a1;
-  --color-warn:    #f0a54a;
-  --color-danger:  #ff6b5e;
-
-  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  /* Numbers are instrumentation here: price, spec, ticket, turnaround. */
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --font-display: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  /* The store has no monospace; codes and prices are set in Jost too. */
+  --font-mono: 'Jost', ui-sans-serif, system-ui, sans-serif;
 
   --radius-xl2: 1.5rem;
 }
@@ -79,6 +72,56 @@
  * ------------------------------------------------------------------ */
 
 @layer base {
+  /* ---------------------------------------------------------------- *
+   * The CMS palette — Bench: a dark studio.
+   *
+   * Two lights define everything: a warm key (`--color-key`, amber) and a
+   * cold rim (`brand-*`, blue). Surfaces are matte, never glass — a blurred
+   * pane over a dark page reads as grey mud. Every type step clears 4.5:1
+   * on ink-950 and on ink-900; mist-500 is the floor at 4.8:1.
+   *
+   * Inverted against the light store: brand-700 is the *lightest* blue,
+   * because accent text on a dark surface has to rise off the page rather
+   * than sink into it. brand-500 is for the charts only.
+   * ---------------------------------------------------------------- */
+  html.theme-admin {
+    color-scheme: dark;
+
+    --color-ink-950: #0a0c10; /* stage, behind everything */
+    --color-ink-900: #14181f; /* panels                   */
+    --color-ink-850: #11151c; /* nested / secondary panes */
+    --color-ink-800: #1a1f29; /* chips, small fills       */
+    --color-ink-700: #222835; /* the edge of a panel      */
+    --color-ink-600: #2c3342; /* a stronger line          */
+    --color-ink-500: #3a4254;
+
+    --color-mist-50:  #f2f5fa; /* headings  */
+    --color-mist-200: #d6dce8; /* strong    */
+    --color-mist-300: #b3bccd; /* secondary */
+    --color-mist-400: #8b94a6; /* body      */
+    --color-mist-500: #737d91; /* captions  */
+
+    --color-brand-50:  #0e1b2b;
+    --color-brand-100: #15293f;
+    --color-brand-500: #4f9bf0;
+    --color-brand-600: #2a7de1;
+    --color-brand-700: #7cb8f7;
+
+    --color-key:     #f0a54a;
+    --color-key-dim: #b87a2e;
+    /* Fixed: use ink-950 here and the label turns near-white on amber. */
+    --color-key-ink: #0a0c10;
+
+    --color-success: #35e0a1;
+    --color-warn:    #f0a54a;
+    --color-danger:  #ff6b5e;
+
+    --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    /* Numbers are instrumentation in the CMS: price, spec, ticket. */
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  }
+
   * {
     border-color: var(--color-ink-700);
   }
@@ -86,19 +129,22 @@
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
     margin: 0;
     color: var(--color-mist-200);
     font-family: var(--font-sans);
-    font-feature-settings: 'cv02', 'cv03', 'cv04';
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
     background-color: var(--color-ink-950);
-    /* The two lights, thrown onto the stage. Fixed, so they read as
-       lighting rather than as blobs that drift during a scroll. */
+  }
+
+  /* The CMS stage: its two lights, thrown onto the dark. Fixed, so they
+     read as lighting rather than as blobs that drift during a scroll. */
+  html.theme-admin body {
+    font-feature-settings: 'cv02', 'cv03', 'cv04';
     background-image:
       radial-gradient(48% 42% at 12% 6%,  rgb(240 165 74 / 0.10) 0%, transparent 64%),
       radial-gradient(44% 40% at 88% 14%, rgb(42 125 225 / 0.13) 0%, transparent 64%),
@@ -109,19 +155,30 @@
 
   h1, h2, h3, h4, h5 {
     font-family: var(--font-display);
+    line-height: 1.2;
+    color: var(--color-mist-50);
+  }
+  html.theme-admin :is(h1, h2, h3, h4, h5) {
     letter-spacing: -0.028em;
     line-height: 1.1;
-    color: var(--color-mist-50);
   }
 
   ::selection {
+    background: rgb(45 187 240 / 0.25);
+    color: inherit;
+  }
+  html.theme-admin ::selection {
     background: color-mix(in oklab, var(--color-key) 30%, transparent);
     color: var(--color-mist-50);
   }
 
-  ::-webkit-scrollbar { width: 11px; height: 11px; }
-  ::-webkit-scrollbar-track { background: var(--color-ink-900); }
-  ::-webkit-scrollbar-thumb {
+  /* The store keeps the system's scrollbars; the CMS darkens its own. */
+  html.theme-admin::-webkit-scrollbar,
+  html.theme-admin ::-webkit-scrollbar { width: 11px; height: 11px; }
+  html.theme-admin::-webkit-scrollbar-track,
+  html.theme-admin ::-webkit-scrollbar-track { background: var(--color-ink-900); }
+  html.theme-admin::-webkit-scrollbar-thumb,
+  html.theme-admin ::-webkit-scrollbar-thumb {
     background: var(--color-ink-600);
     border-radius: 9999px;
     border: 3px solid var(--color-ink-900);
@@ -135,7 +192,7 @@
 
   input, select, textarea, button { font-family: inherit; }
 
-  input[type='date'] { color-scheme: dark; }
+  html.theme-admin input[type='date'] { color-scheme: dark; }
   select option { background: var(--color-ink-900); color: var(--color-mist-50); }
 }
 
@@ -323,6 +380,107 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
+
+  /* ---------------------------------------------------------------- *
+   * The store's versions.
+   *
+   * The rules above are the CMS's dark ones and stay exactly as they were.
+   * On the storefront the same class names take the light store look:
+   * square corners, hairline greys, black buttons with small spaced
+   * capitals, no glow. Utilities on an element still win over all of this.
+   * ---------------------------------------------------------------- */
+
+  html:not(.theme-admin) .glass-strong {
+    background: var(--color-ink-950);
+    border-color: var(--color-ink-600);
+    box-shadow: 0 14px 36px -16px rgb(0 0 0 / 0.22);
+  }
+
+  html:not(.theme-admin) .lift {
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 26px -16px rgb(0 0 0 / 0.18);
+  }
+  html:not(.theme-admin) .lift-lg {
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.05), 0 24px 54px -26px rgb(0 0 0 / 0.24);
+  }
+
+  /* A white sweep is invisible on white; skip the work. */
+  html:not(.theme-admin) .card-sheen::after {
+    display: none;
+  }
+
+  html:not(.theme-admin) .btn-primary,
+  html:not(.theme-admin) .btn-ghost {
+    min-height: 48px;
+    padding: 0 32px;
+    border-radius: 0;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    box-shadow: none;
+    filter: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  html:not(.theme-admin) .btn-primary {
+    color: var(--color-key-ink);
+    background: var(--color-key);
+  }
+  html:not(.theme-admin) .btn-primary:hover {
+    background: var(--color-brand-600);
+    box-shadow: none;
+    filter: none;
+  }
+  html:not(.theme-admin) .btn-primary:disabled {
+    background: var(--color-key);
+  }
+  html:not(.theme-admin) .btn-ghost {
+    color: var(--color-mist-50);
+    background: var(--color-ink-950);
+    border: 1px solid var(--color-mist-50);
+  }
+  html:not(.theme-admin) .btn-ghost:hover {
+    color: var(--color-ink-950);
+    background: var(--color-mist-50);
+    border-color: var(--color-mist-50);
+  }
+
+  html:not(.theme-admin) .field {
+    min-height: 50px;
+    border-radius: 0;
+    background: var(--color-ink-950);
+    border: 1px solid var(--color-ink-600);
+    padding: 12px 18px;
+    font-size: 15px;
+    color: var(--color-mist-50);
+  }
+  html:not(.theme-admin) .field::placeholder {
+    color: rgb(0 0 0 / 0.55);
+  }
+  html:not(.theme-admin) .field:focus {
+    border-color: var(--color-mist-50);
+    box-shadow: none;
+  }
+
+  html:not(.theme-admin) .label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    color: var(--color-mist-50);
+    margin-bottom: 8px;
+  }
+
+  html:not(.theme-admin) .chip {
+    border-radius: 0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  html:not(.theme-admin) .readout {
+    letter-spacing: normal;
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -356,262 +514,6 @@
   margin-left: 50%;
   transform: translateX(-50%);
   max-width: none;
-}
-
-/* ------------------------------------------------------------------ *
- * Home page scenes
- *
- * The homepage is a sequence of scenes, one of which ScrollTrigger pins
- * while its contents play. Pinning replaced the old scroll-snap engine:
- * the two cannot coexist, because `scroll-snap-type: y mandatory` and a
- * pinned element both want to own the same gesture, and the snap wins by
- * yanking the page off the pin mid-animation.
- *
- * Section anchors, the section rail and keyboard paging all still work —
- * they were never the snap's doing.
- * ------------------------------------------------------------------ */
-
-.scene {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 100vh;
-  /* Clears the dock, which overlays the top of each scene. */
-  padding-top: 6rem;
-  padding-bottom: 3rem;
-  scroll-margin-top: 5rem;
-}
-
-/* A pinned scene has to be exactly one viewport tall, or ScrollTrigger is
-   asked to hold still a box that does not fit. */
-@media (min-width: 768px) {
-  .scene-pinned {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
-  }
-}
-
-/* Below the breakpoint nothing is pinned — a pinned scene on a phone traps
-   the thumb, and the compositing lands on the weakest hardware. Scenes
-   flow normally and the teardown ships already separated. */
-@media (max-width: 767px) {
-  .scene {
-    min-height: 0;
-    padding-top: 4rem;
-    padding-bottom: 2.5rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scene,
-  .scene-pinned {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-}
-
-/* ------------------------------------------------------------------ *
- * Tilt cards
- *
- * A deck dealt out while the stage is held still. Every card hangs off
- * the top edge of a 250vw circle whose centre sits far below the fold,
- * so rotating that circle a few degrees walks the card along an arc flat
- * enough to read as a slide — and the card carries a second copy of the
- * same rotation, which is where the tilt comes from. One circle per card
- * is what makes it a deck fanning out rather than four separate entries.
- *
- * The fan is gated on the same query useScenes uses, so the geometry
- * below only ever exists when GSAP is actually going to be fetched. Its
- * resting state is the *end* of the animation, not the start: a scene
- * whose tween never arrives still shows a readable, fanned deck.
- * ------------------------------------------------------------------ */
-
-.tilt-cards {
-  position: relative;
-  padding-block: 4rem;
-  scroll-margin-top: 5rem;
-}
-
-.tilt-card {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-radius: var(--radius-xl2);
-  background: var(--tilt-bg);
-  color: var(--tilt-fg);
-}
-
-/* :where() keeps these at zero specificity so a utility can still win.
-   They beat the base reset regardless, because that one is layered. */
-.tilt-card :where(h3) {
-  color: inherit;
-}
-
-.tilt-card :where(p) {
-  color: color-mix(in oklab, var(--tilt-fg) 84%, var(--tilt-bg));
-}
-
-/* Each card is a flat colour rather than a panel, so the deck still
-   separates once the cards overlap and the borders stack up. */
-.tilt-tone-brand { --tilt-bg: #17568f; --tilt-fg: #f4f8fd; }
-.tilt-tone-key   { --tilt-bg: #f0a54a; --tilt-fg: #16120a; }
-.tilt-tone-deep  { --tilt-bg: #14181f; --tilt-fg: #f2f5fa; }
-.tilt-tone-mint  { --tilt-bg: #35e0a1; --tilt-fg: #06241a; }
-
-.tilt-card_icon {
-  display: inline-flex;
-  height: 3.25rem;
-  width: 3.25rem;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 1rem;
-  border: 1px solid color-mix(in oklab, var(--tilt-fg) 38%, transparent);
-}
-
-.tilt-card_meta {
-  margin-top: 1.25rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.25rem 0.75rem;
-  border-top: 1px solid color-mix(in oklab, var(--tilt-fg) 24%, transparent);
-  padding-top: 0.75rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-}
-
-.tilt-card_meta span:last-child {
-  color: color-mix(in oklab, var(--tilt-fg) 72%, var(--tilt-bg));
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.62rem;
-}
-
-.tilt-cards_hint {
-  display: none;
-}
-
-.tilt-cards_tail {
-  padding-top: 2.5rem;
-}
-
-/* Fallback, and the layout the markup is authored in: a plain grid, in the
-   same container every other section on the page uses. */
-.tilt-cards_stage {
-  margin-inline: auto;
-  width: 100%;
-  max-width: 80rem;
-  padding: 2.5rem 1rem 0;
-}
-
-@media (min-width: 640px) {
-  .tilt-cards_stage {
-    padding-inline: 1.5rem;
-  }
-}
-
-.tilt-cards_deck {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-}
-
-@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-  /* clip, never hidden — `hidden` would make this the scroll container
-     and the sticky stage inside it would have nothing left to stick to. */
-  .tilt-cards {
-    overflow: clip;
-    padding-block: 0;
-  }
-
-  .tilt-cards_runway {
-    position: relative;
-    height: calc(100vh + var(--tilt-count, 4) * 75vh);
-  }
-
-  /* Sits behind the deck and scrolls out with it, so the heading is read
-     first and then handed over to the cards. */
-  .tilt-cards_headline {
-    position: absolute;
-    inset: 0 0 auto;
-    z-index: 1;
-    height: 100%;
-  }
-
-  .tilt-cards_headline-inner {
-    position: sticky;
-    top: 0;
-    display: flex;
-    height: 100vh;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* ScrollTrigger pins this; sticky is the resting state it takes over
-     from, which covers the frames before the library has loaded. Inert,
-     because a card mid-arc is scenery, not a target. */
-  .tilt-cards_stage {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    height: 100vh;
-    max-width: none;
-    overflow: clip;
-    padding: 0;
-    pointer-events: none;
-  }
-
-  .tilt-cards_deck {
-    position: relative;
-    display: block;
-    height: 100vh;
-    gap: 0;
-  }
-
-  .tilt-cards_orbit {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    height: 250vw;
-    width: 250vw;
-    transform: translateX(-50%) rotate(var(--tilt-rot, 0deg));
-    will-change: transform;
-  }
-
-  .tilt-card {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    height: auto;
-    width: clamp(17rem, 26vw, 23rem);
-    aspect-ratio: 0.72;
-    padding: 1.75rem 1.5rem;
-    transform: translate(-50%, -50%) rotate(var(--tilt-rot, 0deg));
-    will-change: transform;
-  }
-
-  .tilt-cards_hint {
-    display: block;
-  }
-
-  /* The dealt deck only fills the middle of the stage. The tail rides up
-     into the quiet band under it, so the list follows the cards instead
-     of trailing a blank screen behind them. */
-  .tilt-cards_tail {
-    position: relative;
-    margin-top: -12vh;
-    padding-top: 0;
-  }
 }
 
 /* ------------------------------------------------------------------ *

@@ -1,156 +1,179 @@
-import { Link } from 'react-router-dom'
-import { MapPin, Phone, Mail, Clock, Lock, MessageCircle } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowRight, Lock, MessageCircle } from 'lucide-react'
 import { Facebook, Instagram, Youtube } from './BrandIcons'
 import { useSettings, fullAddress, whatsappLink } from '@/lib/useSettings'
+import Wordmark from './store/Wordmark'
+import './store/store.css'
 
 const SHOP_LINKS = [
   { to: '/products?category=smartphone', label: 'Smartphones' },
-  { to: '/products?category=tablet', label: 'Tablets' },
+  { to: '/products?category=audio', label: 'Earbuds & Headphones' },
   { to: '/products?category=wearable', label: 'Smartwatches' },
-  { to: '/products?category=audio', label: 'Audio' },
+  { to: '/products?category=tablet', label: 'Tablets' },
   { to: '/products?category=accessory', label: 'Accessories' },
+  { to: '/products', label: 'All products' },
 ]
 
-const HELP_LINKS = [
-  { to: '/services', label: 'Repair Services' },
-  { to: '/book', label: 'Book a Repair' },
-  { to: '/track', label: 'Track Your Repair' },
-  { to: '/feedback', label: 'Customer Reviews' },
+const REPAIR_LINKS = [
+  { to: '/services', label: 'Repair prices' },
+  { to: '/book', label: 'Book a repair' },
+  { to: '/track', label: 'Track your repair' },
+  { to: '/feedback', label: 'Customer reviews' },
   { to: '/faq', label: 'FAQ' },
-  { to: '/contact', label: 'Contact Us' },
+  { to: '/about', label: 'About us' },
 ]
+
+/** How the FAQ says customers can pay. */
+const PAYMENTS = ['UPI', 'Cards', 'Cash', 'No-cost EMI']
+
+/** A bare https://facebook.com/ is the seed's placeholder, not a page. */
+function isRealProfile(url: string | undefined) {
+  if (!url) return false
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '').length > 0
+  } catch {
+    return false
+  }
+}
+
+const linkClass = 'text-[15px] font-medium leading-[27px] text-[var(--st-muted)] transition-colors hover:text-black'
 
 export default function Footer() {
   const settings = useSettings()
+  const navigate = useNavigate()
+  const [ticket, setTicket] = useState('')
   const year = new Date().getFullYear()
 
+  const socials = [
+    { url: settings.social_facebook, label: 'Facebook', Icon: Facebook },
+    { url: settings.social_instagram, label: 'Instagram', Icon: Instagram },
+    { url: settings.social_youtube, label: 'YouTube', Icon: Youtube },
+  ].filter((s) => isRealProfile(s.url))
+
+  function track(e: FormEvent) {
+    e.preventDefault()
+    const t = ticket.trim()
+    navigate(t ? `/track?ticket=${encodeURIComponent(t)}` : '/track')
+  }
+
+  const phones = [settings.phone_primary, settings.phone_secondary].filter(Boolean)
+
   return (
-    <footer id="site-footer" className="relative mt-24 overflow-hidden border-t border-ink-700 bg-ink-900">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-ink-700" />
+    // On phones the quick-action bar is fixed to the bottom of the screen;
+    // the footer's own padding runs behind it so its grey reaches the edge.
+    <footer
+      id="site-footer"
+      className="st relative z-10 border-t border-[var(--st-line)] bg-[var(--st-footer)] pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
+    >
+      <div className="st-container grid gap-10 py-10 sm:grid-cols-2 lg:grid-cols-[0.92fr_1fr_1fr_1fr] lg:gap-0 lg:py-0">
+        {/* about + track */}
+        <div className="lg:pb-[50px] lg:pr-[30px] lg:pt-10">
+          <Link to="/">
+            <Wordmark />
+          </Link>
+          <p className="mt-5 max-w-xs text-[15px] font-medium leading-[1.8] text-[var(--st-muted)] lg:text-[16px]">
+            Phones, accessories and same-day repairs on Ratu Road, Ranchi — since {settings.established || '2005'}.
+          </p>
 
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
-          <div>
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-xl font-extrabold text-white">
-                V
-              </span>
-              <div>
-                <div className="font-display text-lg font-bold">{settings.shop_name}</div>
-                <div className="text-xs text-mist-500">{settings.tagline}</div>
-              </div>
-            </div>
+          <form onSubmit={track} className="mt-6 flex max-w-sm" role="search" aria-label="Track your repair">
+            <label htmlFor="footer-ticket" className="sr-only">Repair ticket number</label>
+            <input
+              id="footer-ticket"
+              value={ticket}
+              onChange={(e) => setTicket(e.target.value.toUpperCase())}
+              placeholder="Your ticket, e.g. VMS-7K4PQ2"
+              maxLength={14}
+              autoComplete="off"
+              className="min-w-0 flex-1 border border-r-0 border-[var(--st-line)] bg-white px-4 py-3 text-[14px] text-black outline-none placeholder:text-black/40 focus:border-black"
+            />
+            <button type="submit" className="flex w-12 shrink-0 items-center justify-center bg-black text-white transition-colors hover:bg-[var(--st-accent-ink)]" aria-label="Track repair">
+              <ArrowRight size={18} />
+            </button>
+          </form>
 
-            <p className="mb-6 max-w-sm text-sm leading-relaxed text-mist-400">
-              Authorised stock from every major brand and an in-house repair bench, serving Ranchi since{' '}
-              {settings.established || '2011'}.
-            </p>
-
-            <div className="flex gap-3">
-              {[
-                { href: settings.social_facebook, Icon: Facebook, label: 'Facebook' },
-                { href: settings.social_instagram, Icon: Instagram, label: 'Instagram' },
-                { href: settings.social_youtube, Icon: Youtube, label: 'YouTube' },
-                { href: whatsappLink(settings), Icon: MessageCircle, label: 'WhatsApp' },
-              ]
-                .filter((s) => s.href)
-                .map(({ href, Icon, label }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 text-mist-400 transition hover:border-brand-600/50 hover:bg-brand-600/15 hover:text-brand-700"
-                  >
-                    <Icon size={17} />
-                  </a>
-                ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-mist-50">Shop</h3>
-            <ul className="space-y-3">
-              {SHOP_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link to={link.to} className="text-sm text-mist-400 transition hover:text-brand-700">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-mist-50">Help</h3>
-            <ul className="space-y-3">
-              {HELP_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link to={link.to} className="text-sm text-mist-400 transition hover:text-brand-700">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-mist-50">Visit the shop</h3>
-            <ul className="space-y-4 text-sm text-mist-400">
-              <li className="flex gap-3">
-                <MapPin size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                <span className="leading-relaxed">{fullAddress(settings)}</span>
-              </li>
-              <li className="flex gap-3">
-                <Phone size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                <span className="flex flex-col">
-                  <a href={`tel:${(settings.phone_primary || '').replace(/\s/g, '')}`} className="transition hover:text-brand-700">
-                    {settings.phone_primary}
-                  </a>
-                  {settings.phone_secondary && (
-                    <a href={`tel:${settings.phone_secondary.replace(/\s/g, '')}`} className="transition hover:text-brand-700">
-                      {settings.phone_secondary}
-                    </a>
-                  )}
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <Mail size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                <a href={`mailto:${settings.email}`} className="transition hover:text-brand-700">
-                  {settings.email}
-                </a>
-              </li>
-              <li className="flex gap-3">
-                <Clock size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                <span className="leading-relaxed">
-                  Mon&ndash;Sat {settings.hours_weekday}
-                  <br />
-                  Sunday {settings.hours_sunday}
-                </span>
-              </li>
-            </ul>
+          <div className="mt-6 flex items-center gap-1">
+            <a
+              href={whatsappLink(settings)}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="flex h-10 w-10 items-center justify-center text-black/55 transition-colors hover:text-black"
+              aria-label="WhatsApp"
+            >
+              <MessageCircle size={18} />
+            </a>
+            {socials.map(({ url, label, Icon }) => (
+              <a
+                key={label}
+                href={url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="flex h-10 w-10 items-center justify-center text-black/55 transition-colors hover:text-black"
+                aria-label={label}
+              >
+                <Icon size={17} />
+              </a>
+            ))}
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-ink-700 pt-7 text-xs text-mist-500 sm:flex-row">
-          <p>
-            &copy; {year} {settings.shop_name}. GSTIN {settings.gst}. All rights reserved.
+        <div className="lg:border-l lg:border-[var(--st-line)] lg:px-[30px] lg:pb-[50px] lg:pt-10">
+          <h2 className="st-foot-title">Shop</h2>
+          <ul className="mt-[22px] space-y-[9px]">
+            {SHOP_LINKS.map((link) => (
+              <li key={link.to}>
+                <Link to={link.to} className={linkClass}>{link.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="lg:border-l lg:border-[var(--st-line)] lg:px-[30px] lg:pb-[50px] lg:pt-10">
+          <h2 className="st-foot-title">Repairs</h2>
+          <ul className="mt-[22px] space-y-[9px]">
+            {REPAIR_LINKS.map((link) => (
+              <li key={link.to}>
+                <Link to={link.to} className={linkClass}>{link.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="lg:border-l lg:border-[var(--st-line)] lg:pb-[50px] lg:pl-[30px] lg:pt-10">
+          <h2 className="st-foot-title">Visit us</h2>
+          <address className="mt-[22px] space-y-3 text-[15px] font-medium not-italic leading-[1.8] text-[var(--st-muted)]">
+            <p>{fullAddress(settings)}</p>
+            <p>
+              Mon&ndash;Sat {settings.hours_weekday}
+              <br />
+              Sunday {settings.hours_sunday}
+            </p>
+            <p className="flex flex-col">
+              {phones.map((phone) => (
+                <a key={phone} href={`tel:${phone.replace(/\s/g, '')}`} className="py-1 text-black transition-colors hover:text-[var(--st-accent-ink)]">
+                  {phone}
+                </a>
+              ))}
+            </p>
+          </address>
+        </div>
+      </div>
+
+      <div className="border-t border-[var(--st-line)]">
+        <div className="st-container flex flex-col gap-3 py-4 text-[14px] sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[var(--st-muted)]">
+            &copy; {year} {settings.shop_name}, {settings.city || 'Ranchi'}.{' '}
+            <Link to="/admin" className="inline-flex items-center gap-1 transition-colors hover:text-black">
+              <Lock size={12} /> Staff login
+            </Link>
           </p>
-          <div className="flex items-center gap-5">
-            <Link to="/faq" className="transition hover:text-brand-700">
-              FAQ
-            </Link>
-            <Link to="/contact" className="transition hover:text-brand-700">
-              Contact
-            </Link>
-            {/* Staff entrance — intentionally understated, and the CMS itself
-                is behind a login, so customers never see stock figures. */}
-            <Link to="/admin" className="flex items-center gap-1.5 transition hover:text-brand-700">
-              <Lock size={11} />
-              Staff Login
-            </Link>
-          </div>
+          <ul className="flex flex-wrap items-center gap-2" aria-label="Ways to pay">
+            {PAYMENTS.map((p) => (
+              <li key={p} className="border border-black/15 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-black/60">
+                {p}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>

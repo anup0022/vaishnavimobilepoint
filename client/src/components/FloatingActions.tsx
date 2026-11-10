@@ -15,7 +15,9 @@ export default function FloatingActions() {
   }, [])
 
   return (
-    <div className="fixed bottom-6 right-4 z-[120] flex flex-col items-end gap-3 sm:right-6">
+    // Desktop only: on phones the header's bottom action bar has WhatsApp and
+    // Call, and these would sit on top of it.
+    <div className="fixed bottom-6 right-4 z-[120] hidden flex-col items-end gap-3 sm:right-6 lg:flex">
       <a
         href={whatsappLink(settings)}
         target="_blank"

@@ -1,0 +1,189 @@
+/* ------------------------------------------------------------------ *
+ * Store look — the header, footer and homepage.
+ *
+ * A clean white storefront: Jost, uppercase headings with letter-spaced
+ * light-grey subtitles, black buttons, grey product tiles with a red "Sale"
+ * ribbon and teal prices, and a light-grey four-column footer.
+ *
+ * The bright teal fails contrast as text on white (2.2:1), so it is kept for
+ * decoration — stars, rules, badges — and prices use a deeper teal (4.8:1).
+ * Subtitles and footer links are a shade darker than pure "light grey" for
+ * the same reason.
+ *
+ * Everything sits in Tailwind's `components` layer. Unlayered, `.st` beat
+ * every utility — `text-white` on the announcement strip lost to the
+ * container's grey and the text vanished — while the site's base rule still
+ * set every heading in the dark theme's display face. In the layer, utilities
+ * win as they should, and the heading reset below wins over the base rule.
+ * ------------------------------------------------------------------ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  :root {
+    --st-font: 'Jost', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --st-ink: #000;
+    --st-body: rgb(0 0 0 / 0.75);
+    --st-muted: rgb(0 0 0 / 0.6);
+    --st-faint: rgb(0 0 0 / 0.55);
+    --st-accent: #2dbbf0;
+    --st-accent-ink: #007ba8;
+    --st-sale: #e12c43;
+    --st-tile: #f5f5f5;
+    --st-band: #eaedf1;
+    --st-footer: #f3f3f3;
+    --st-line: #e3e3e3;
+  }
+
+  .st {
+    font-family: var(--st-font);
+    color: var(--st-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The dark theme gives headings its display face, tight tracking and a
+     near-white colour; none of that belongs on the white storefront. */
+  .st :where(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+    letter-spacing: normal;
+    line-height: 1.3;
+    color: var(--st-ink);
+  }
+
+  .st *,
+  .st ::before,
+  .st ::after {
+    border-color: var(--st-line);
+  }
+
+  .st :focus-visible {
+    outline-color: var(--st-accent-ink);
+    border-radius: 0;
+  }
+
+  .st-container {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 20px;
+  }
+  @media (min-width: 1400px) {
+    .st-container {
+      padding-inline: 40px;
+    }
+  }
+
+  /* Section heading pair: "BEST SELLER" over its light-grey line. */
+  .st-title {
+    margin: 0;
+    font: 400 25px / 1.3 var(--st-font);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--st-ink);
+  }
+
+  .st-sub {
+    margin: 0;
+    padding-top: 20px;
+    font: 400 16px / 1.3 var(--st-font);
+    letter-spacing: 1.6px;
+    text-align: center;
+    color: var(--st-faint);
+  }
+
+  @media (min-width: 768px) {
+    .st-title {
+      font-size: 32px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .st-title {
+      font-size: 40px;
+    }
+    .st-sub {
+      font-size: 20px;
+    }
+  }
+
+  .st-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 36px;
+    background: var(--st-ink);
+    color: #fff;
+    font: 500 12px / 1 var(--st-font);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    transition: background-color 0.2s ease;
+  }
+  .st-btn:hover,
+  .st-btn:focus-visible {
+    background: var(--st-accent-ink);
+  }
+
+  /* Diagonal "Sale" band across the top-right corner of a product tile; the
+     tile's overflow:hidden trims it into the corner triangle. */
+  .st-ribbon {
+    position: absolute;
+    top: 16px;
+    right: -36px;
+    width: 128px;
+    transform: rotate(45deg);
+    background: var(--st-sale);
+    color: #fff;
+    font: 500 12px / 26px var(--st-font);
+    letter-spacing: 1px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .st-price {
+    color: var(--st-accent-ink);
+  }
+
+  .st-mrp {
+    color: rgb(0 0 0 / 0.55);
+    text-decoration: line-through;
+  }
+
+  /* Footer column heading with the short rule under it. */
+  .st-foot-title {
+    font: 500 12px / 1.3 var(--st-font);
+    letter-spacing: 3.2px;
+    text-transform: uppercase;
+    color: var(--st-ink);
+  }
+  .st-foot-title::after {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    margin-top: 16px;
+    background: rgb(0 0 0 / 0.2);
+  }
+  @media (min-width: 1024px) {
+    .st-foot-title {
+      font-size: 14px;
+    }
+  }
+
+  .st-scroll-row {
+    scrollbar-width: none;
+  }
+  .st-scroll-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .st *,
+    .st *::before,
+    .st *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}

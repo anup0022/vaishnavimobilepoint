@@ -250,6 +250,7 @@ export function renderPage(shell, req) {
   const base = siteUrl(req)
   const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path
   const pages = staticPages(s)
+  const admin = path === '/admin' || path.startsWith('/admin/')
   const notFound = {
     title: `Page not found | ${shop}`,
     description: `This page does not exist. Find phones, repairs and directions to ${shop} on Ratu Road, Ranchi.`,
@@ -261,7 +262,7 @@ export function renderPage(shell, req) {
   if (!meta) {
     const product = path.match(/^\/products\/([a-z0-9-]+)$/)
     if (product) meta = productPage(shop, product[1])
-    else if (path === '/admin' || path.startsWith('/admin/')) {
+    else if (admin) {
       meta = { title: `Staff CMS | ${shop}`, description: '' }
       noindex = true
     }
@@ -291,6 +292,12 @@ export function renderPage(shell, req) {
   html = swap(html, /<meta\s+property="og:type"[^>]*>/, `<meta property="og:type" content="${meta.ogType || 'website'}" />`)
   html = swap(html, /<meta\s+property="og:title"[^>]*>/, `<meta property="og:title" content="${title}" />`)
   html = swap(html, /<meta\s+property="og:description"[^>]*>/, `<meta property="og:description" content="${description}" />`)
+
+  // The storefront is light and the staff CMS dark. Marking the CMS here
+  // makes it paint dark from the first frame, before any script has run;
+  // the client keeps the mark right when someone moves between the two.
+  if (admin) html = html.replace(/<html\b([^>]*)>/, '<html$1 class="theme-admin">')
+  html = swap(html, /<meta\s+name="theme-color"[^>]*>/, `<meta name="theme-color" content="${admin ? '#0a0c10' : '#ffffff'}" />`)
 
   const tags = [
     noindex ? '<meta name="robots" content="noindex" />' : `<link rel="canonical" href="${escapeXml(canonical)}" />`,

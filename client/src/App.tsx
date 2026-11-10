@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SettingsProvider } from './lib/useSettings'
 import { ToastProvider } from './components/Toast'
 import Layout from './components/Layout'
+import ThemeSync from './components/ThemeSync'
 
 import Home from './pages/Home'
 import Products from './pages/Products'
@@ -41,6 +42,7 @@ function AdminFallback() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ThemeSync />
       <SettingsProvider>
         <ToastProvider>
           <Routes>

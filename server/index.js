@@ -52,17 +52,10 @@ if (TRUST_PROXY && TRUST_PROXY !== 'false') {
  * Security headers. No helmet — it would be a third runtime dependency for a
  * dozen static strings.
  *
- * The CSP allowlist is exactly what the site loads: Google Fonts for Inter,
- * Unsplash for catalogue photography, a Google Maps embed on the contact
- * and home pages, and the homepage hero's clip and poster frame. Everything
- * else is same-origin.
+ * The CSP allowlist is exactly what the site loads: Google Fonts, Unsplash
+ * for catalogue and homepage photography, review avatars, and a Google Maps
+ * embed on the contact page. Everything else is same-origin.
  */
-
-/* The hero's CloudFront folder — must match the URLs at the top of
-   client/src/components/HomeHero.tsx. Scoped to the folder rather than the
-   host, because the host is a shared upload bucket. Without it the video
-   falls back to default-src and the hero renders as an empty frame. */
-const HERO_MEDIA = 'https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/'
 
 /* Google Analytics 4 (gtag.js), only once GA_MEASUREMENT_ID is set — the
    hosts Google lists for a CSP with the Google tag. Until then the policy is
@@ -82,8 +75,7 @@ const CSP = [
   // dropped without rewriting the animation layer.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  `img-src 'self' data: blob: https://images.unsplash.com https://i.pravatar.cc ${HERO_MEDIA}${GA.img}`,
-  `media-src 'self' ${HERO_MEDIA}`,
+  `img-src 'self' data: blob: https://images.unsplash.com https://i.pravatar.cc${GA.img}`,
   `connect-src 'self'${GA.connect}`,
   "frame-src https://maps.google.com https://www.google.com",
   "form-action 'self'",

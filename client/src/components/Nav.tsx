@@ -1,42 +1,68 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Menu, X, Phone, Wrench, Megaphone, MapPin, Clock4, MessageCircle, ArrowUpRight,
+  Menu, X, Phone, Search, PackageSearch, MessageCircle, LayoutGrid, MapPin, Clock4, Wrench,
 } from 'lucide-react'
 import { useSettings, fullAddress, whatsappLink } from '@/lib/useSettings'
+import Wordmark from './store/Wordmark'
+import './store/store.css'
 
 const LINKS = [
-  { to: '/', label: 'Home', hint: 'Start here' },
-  { to: '/products', label: 'Shop', hint: 'Phones, audio, accessories' },
-  { to: '/services', label: 'Repairs', hint: 'Services and charges' },
-  { to: '/book', label: 'Book a Repair', hint: 'Get a ticket number' },
-  { to: '/track', label: 'Track Repair', hint: 'Check your repair status' },
-  { to: '/feedback', label: 'Reviews', hint: 'What customers say' },
-  { to: '/about', label: 'About', hint: 'Our story since 2005' },
-  { to: '/contact', label: 'Contact', hint: 'Find us and get in touch' },
+  { to: '/', label: 'Home' },
+  { to: '/products', label: 'Shop' },
+  { to: '/services', label: 'Repairs' },
+  { to: '/book', label: 'Book Repair' },
+  { to: '/track', label: 'Track Repair' },
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
 ]
 
+/** Only in the phone menu: the top bar has no room for them. */
+const MORE_LINKS = [
+  { to: '/feedback', label: 'Reviews' },
+  { to: '/faq', label: 'FAQ' },
+]
+
+const iconButton =
+  'flex h-11 w-11 items-center justify-center text-black transition-colors hover:text-[var(--st-accent-ink)]'
+
+/**
+ * Store header: a black announcement strip, then a white bar with the
+ * wordmark, the page links and four actions — search the catalogue, track a
+ * repair, WhatsApp and call. On phones the links move into a slide-in menu
+ * and the actions into a bar fixed to the bottom of the screen.
+ */
 export default function Nav() {
   const [open, setOpen] = useState(false)
+  const [searching, setSearching] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [term, setTerm] = useState('')
   const settings = useSettings()
   const location = useLocation()
-
-  useEffect(() => setOpen(false), [location.pathname])
+  const navigate = useNavigate()
+  const searchInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
+    setOpen(false)
+    setSearching(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Lock the page behind the open menu, and let Escape close it.
+  // Lock the page behind the open menu, and let Escape close menu or search.
   useEffect(() => {
-    if (!open) return
-    document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    if (open) document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setOpen(false)
+      setSearching(false)
+    }
     window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = ''
@@ -44,203 +70,228 @@ export default function Nav() {
     }
   }, [open])
 
-  const telHref = `tel:${(settings.phone_primary || '').replace(/\s/g, '')}`
+  useEffect(() => {
+    if (searching) searchInput.current?.focus()
+  }, [searching])
 
+  function submitSearch(e: FormEvent) {
+    e.preventDefault()
+    const q = term.trim()
+    setSearching(false)
+    navigate(q ? `/products?q=${encodeURIComponent(q)}` : '/products')
+  }
+
+  const telHref = `tel:${(settings.phone_primary || '').replace(/\s/g, '')}`
+  const wa = whatsappLink(settings)
+
+  // A fragment, not a wrapper: the header is sticky, and a sticky element
+  // only sticks inside its parent — a wrapper ending below the header would
+  // carry it off the screen.
   return (
     <>
       {settings.announcement && (
-        <div className="relative z-[90] overflow-hidden bg-key py-2 text-center text-[13px] font-bold text-key-ink">
-          <div className="flex items-center justify-center gap-2 px-4">
-            <Megaphone size={14} className="shrink-0" />
-            <span className="truncate">{settings.announcement}</span>
-          </div>
+        <div className="st relative z-[90] bg-black px-4 py-2.5 text-center text-[12px] font-medium leading-snug tracking-[0.04em] text-white sm:text-[13px]">
+          <p>{settings.announcement}</p>
         </div>
       )}
 
-      {/* The dock. Kept in flow rather than floated free: it is the same
-          element on all eleven routes, and taking it out of flow would slide
-          every other page up underneath it. */}
-      <header className="sticky top-0 z-[100] px-3 pt-3">
-        <nav
-          className={`mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl px-3 py-2.5 transition-all duration-300 sm:px-4 ${
-            scrolled ? 'glass-strong lift-lg' : 'border border-transparent'
-          }`}
-        >
-          <Link to="/" className="group flex shrink-0 items-center gap-3">
-            <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-key text-xl font-extrabold text-key-ink shadow-lg shadow-key/25 transition-transform duration-300 group-hover:scale-105">
-              V
-            </span>
-            <span className="hidden leading-tight sm:block">
-              <span className="block font-display text-base font-bold tracking-tight">{settings.shop_name}</span>
-              <span className="readout block text-[10px] uppercase tracking-[0.12em] text-mist-500">
-                {settings.city || 'Ranchi'} &middot; Since {settings.established || '2005'}
-              </span>
-            </span>
-          </Link>
-
-          {/* The link list lives in the menu panel at every width, so the bar
-              itself stays down to a logo, one phone number and one CTA. */}
-          <div className="flex items-center gap-2">
-            <a
-              href={telHref}
-              className="readout hidden items-center gap-2 rounded-full border border-ink-600 bg-ink-900 px-4 py-2.5 text-sm font-semibold text-mist-200 transition hover:border-brand-600 hover:text-brand-700 md:flex"
-            >
-              <Phone size={15} />
-              {settings.phone_primary}
-            </a>
-
-            <Link to="/book" className="btn-primary hidden px-5 py-2.5 text-sm sm:inline-flex">
-              <Wrench size={16} />
-              Book a Repair
-            </Link>
-
-            <button
-              onClick={() => setOpen(true)}
-              className="flex h-11 items-center gap-2 rounded-xl border border-ink-600 bg-ink-900 px-3.5 text-sm font-semibold text-mist-200 transition hover:border-brand-600 hover:text-brand-700"
-              aria-label="Open menu"
-              aria-expanded={open}
-            >
-              <Menu size={20} />
-              <span className="hidden lg:inline">Menu</span>
+      <header
+        className={`st sticky top-0 z-[100] bg-white transition-shadow duration-300 ${
+          scrolled || searching ? 'shadow-[0_2px_18px_rgb(0_0_0/0.08)]' : ''
+        }`}
+      >
+        <nav className="st-container grid h-[52px] grid-cols-[1fr_auto_1fr] items-center gap-4 lg:h-[85px]">
+          {/* phones: menu button left, logo centred */}
+          <div className="flex items-center lg:hidden">
+            <button onClick={() => setOpen(true)} className={`-ml-2.5 ${iconButton}`} aria-label="Open menu" aria-expanded={open}>
+              <Menu size={24} strokeWidth={1.6} />
             </button>
           </div>
+
+          <Link to="/" className="justify-self-center lg:justify-self-start">
+            <Wordmark />
+          </Link>
+
+          <ul className="hidden items-center justify-center gap-6 lg:flex xl:gap-10 min-[1400px]:gap-[50px]">
+            {LINKS.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  end={link.to === '/'}
+                  className={({ isActive }) =>
+                    `relative whitespace-nowrap py-2 text-[13px] font-medium uppercase transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-current after:transition-transform ${
+                      isActive
+                        ? 'text-[var(--st-accent-ink)] after:scale-x-100'
+                        : 'text-black after:scale-x-0 hover:text-[var(--st-accent-ink)] hover:after:scale-x-100'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center justify-end">
+            <button
+              onClick={() => setSearching((s) => !s)}
+              className={iconButton}
+              aria-label="Search products"
+              aria-expanded={searching}
+            >
+              <Search size={22} strokeWidth={1.6} />
+            </button>
+            <Link to="/track" className={`hidden lg:flex ${iconButton}`} aria-label="Track your repair" title="Track your repair">
+              <PackageSearch size={22} strokeWidth={1.6} />
+            </Link>
+            <a
+              href={wa}
+              target="_blank"
+              rel="noreferrer noopener"
+              className={`hidden lg:flex ${iconButton}`}
+              aria-label="Chat on WhatsApp"
+              title="WhatsApp"
+            >
+              <MessageCircle size={22} strokeWidth={1.6} />
+            </a>
+            <a href={telHref} className={`relative ${iconButton}`} aria-label={`Call ${settings.phone_primary}`} title={settings.phone_primary}>
+              <Phone size={21} strokeWidth={1.6} />
+              <span className="absolute right-1.5 top-2 h-2 w-2 rounded-full bg-[var(--st-accent)] ring-2 ring-white" aria-hidden="true" />
+            </a>
+          </div>
         </nav>
+
+        <AnimatePresence>
+          {searching && (
+            <motion.form
+              onSubmit={submitSearch}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden border-t border-[var(--st-line)] bg-white"
+              role="search"
+            >
+              <div className="st-container flex items-center gap-3 py-4">
+                <Search size={20} strokeWidth={1.6} className="shrink-0 text-black/50" />
+                <label htmlFor="site-search" className="sr-only">Search phones and accessories</label>
+                <input
+                  id="site-search"
+                  ref={searchInput}
+                  value={term}
+                  onChange={(e) => setTerm(e.target.value)}
+                  placeholder="Search phones, earbuds, chargers…"
+                  className="min-w-0 flex-1 bg-transparent py-2 text-[16px] text-black outline-none placeholder:text-black/40"
+                  autoComplete="off"
+                />
+                <button type="submit" className="st-btn px-5 sm:px-9">Search</button>
+              </div>
+            </motion.form>
+          )}
+        </AnimatePresence>
       </header>
 
+      {/* phones: slide-in menu */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[160] bg-ink-950/97 backdrop-blur-xl"
-          >
-            <div className="mx-auto flex h-full max-w-7xl flex-col px-5 pb-8 pt-5 sm:px-8">
-              <div className="flex items-center justify-between">
-                <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-key text-xl font-extrabold text-key-ink">
-                    V
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block font-display text-base font-bold">{settings.shop_name}</span>
-                    {settings.shop_name_local && (
-                      <span className="block text-[11px] text-mist-500">{settings.shop_name_local}</span>
-                    )}
-                  </span>
-                </Link>
-
-                <button
-                  onClick={() => setOpen(false)}
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-ink-600 bg-ink-900 text-mist-400 transition hover:border-brand-600/50 hover:text-brand-700"
-                  aria-label="Close menu"
-                >
-                  <X size={20} />
+          <>
+            <motion.div
+              className="fixed inset-0 z-[160] bg-black/40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              aria-hidden="true"
+            />
+            <motion.aside
+              className="st fixed inset-y-0 left-0 z-[170] flex w-[86vw] max-w-[360px] flex-col overflow-y-auto bg-white"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu"
+            >
+              <div className="flex items-center justify-between border-b border-[var(--st-line)] px-5 py-4">
+                <Wordmark />
+                <button onClick={() => setOpen(false)} className={iconButton} aria-label="Close menu">
+                  <X size={22} strokeWidth={1.6} />
                 </button>
               </div>
 
-              <div className="mt-8 grid flex-1 content-start gap-10 overflow-y-auto lg:grid-cols-[1.35fr_1fr] lg:gap-16">
-                {/* links */}
-                <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-1">
-                  {LINKS.map((link, i) => (
-                    <motion.li
-                      key={link.to}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.04 + i * 0.045, duration: 0.35 }}
+              <ul className="px-5 py-3">
+                {[...LINKS, ...MORE_LINKS].map((link) => (
+                  <li key={link.to} className="border-b border-[var(--st-line)]">
+                    <NavLink
+                      to={link.to}
+                      end={link.to === '/'}
+                      className={({ isActive }) =>
+                        `block py-3.5 text-[14px] font-medium uppercase tracking-[0.08em] ${
+                          isActive ? 'text-[var(--st-accent-ink)]' : 'text-black'
+                        }`
+                      }
                     >
-                      <NavLink
-                        to={link.to}
-                        end={link.to === '/'}
-                        onClick={() => setOpen(false)}
-                        className={({ isActive }) =>
-                          `group flex items-center justify-between gap-4 rounded-2xl border border-transparent px-4 py-3.5 transition-colors ${
-                            isActive ? 'border-ink-700 bg-ink-900 lift' : 'hover:border-ink-700 hover:bg-ink-900'
-                          }`
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <span className="min-w-0">
-                              <span
-                                className={`block font-display text-2xl font-bold leading-tight sm:text-3xl ${
-                                  isActive ? 'text-key' : 'text-mist-50'
-                                }`}
-                              >
-                                {link.label}
-                              </span>
-                              <span className="block truncate text-xs text-mist-500">{link.hint}</span>
-                            </span>
-                            <ArrowUpRight
-                              size={20}
-                              className="shrink-0 text-mist-500 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-brand-700"
-                            />
-                          </>
-                        )}
-                      </NavLink>
-                    </motion.li>
-                  ))}
-                </ul>
+                      {link.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
 
-                {/* shop details */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
-                  className="rounded-3xl border border-ink-700 bg-ink-900 lift p-6 sm:p-7"
-                >
-                  <h2 className="mb-5 font-display text-lg font-bold">Visit the shop</h2>
-
-                  <ul className="space-y-4 text-sm">
-                    <li className="flex gap-3">
-                      <MapPin size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                      <span className="leading-relaxed text-mist-400">{fullAddress(settings)}</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <Phone size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                      <span className="flex flex-col">
-                        <a href={telHref} className="text-mist-300 hover:text-brand-700">
-                          {settings.phone_primary}
-                        </a>
-                        {settings.phone_secondary && (
-                          <a
-                            href={`tel:${settings.phone_secondary.replace(/\s/g, '')}`}
-                            className="text-mist-300 hover:text-brand-700"
-                          >
-                            {settings.phone_secondary}
-                          </a>
-                        )}
-                      </span>
-                    </li>
-                    <li className="flex gap-3">
-                      <Clock4 size={17} className="mt-0.5 shrink-0 text-brand-700" />
-                      <span className="leading-relaxed text-mist-400">
-                        Mon&ndash;Sat {settings.hours_weekday}
-                        <br />
-                        Sunday {settings.hours_sunday}
-                      </span>
-                    </li>
-                  </ul>
-
-                  <div className="mt-7 flex flex-col gap-3">
-                    <Link to="/book" onClick={() => setOpen(false)} className="btn-primary w-full">
-                      <Wrench size={18} /> Book a Repair
-                    </Link>
-                    <a
-                      href={whatsappLink(settings)}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="btn-ghost w-full"
-                    >
-                      <MessageCircle size={18} /> WhatsApp us
-                    </a>
-                  </div>
-                </motion.div>
+              <div className="mt-auto space-y-4 bg-[var(--st-footer)] px-5 py-6 text-[14px]">
+                <p className="flex gap-3">
+                  <MapPin size={17} strokeWidth={1.6} className="mt-0.5 shrink-0 text-black" />
+                  <span className="leading-relaxed">{fullAddress(settings)}</span>
+                </p>
+                <p className="flex gap-3">
+                  <Clock4 size={17} strokeWidth={1.6} className="mt-0.5 shrink-0 text-black" />
+                  <span className="leading-relaxed">
+                    Mon&ndash;Sat {settings.hours_weekday}
+                    <br />
+                    Sunday {settings.hours_sunday}
+                  </span>
+                </p>
+                <Link to="/book" className="st-btn w-full">
+                  <Wrench size={15} /> Book a repair
+                </Link>
               </div>
-            </div>
-          </motion.div>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
+
+      {/* phones: the actions, fixed to the bottom of the screen */}
+      <nav
+        className="st fixed inset-x-0 bottom-0 z-[110] grid grid-cols-5 divide-x divide-[var(--st-line)] border-t border-[var(--st-line)] bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Quick actions"
+      >
+        <Link to="/products" className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black">
+          <LayoutGrid size={21} strokeWidth={1.6} /> Shop
+        </Link>
+        <button
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            setSearching(true)
+          }}
+          className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black"
+        >
+          <Search size={21} strokeWidth={1.6} /> Search
+        </button>
+        <Link to="/track" className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black">
+          <PackageSearch size={21} strokeWidth={1.6} /> Track
+        </Link>
+        <a
+          href={wa}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black"
+        >
+          <MessageCircle size={21} strokeWidth={1.6} /> WhatsApp
+        </a>
+        <a href={telHref} className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium uppercase tracking-[0.06em] text-black">
+          <Phone size={21} strokeWidth={1.6} /> Call
+        </a>
+      </nav>
     </>
   )
 }
