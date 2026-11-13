@@ -1,6 +1,8 @@
 import express from 'express'
 import { db, allSettings, STATUS_FLOW, STATUS_LABELS } from '../db.js'
 import { createCaptcha, verifyCaptcha, rateLimit, ticketCode, normalisePhone, EPHEMERAL } from '../util.js'
+import { availability, discount, relatedProducts, safeJson } from '../catalogue.js'
+import { publicSettings } from '../shop.js'
 
 export const publicRouter = express.Router()
 
@@ -22,15 +24,9 @@ function rejectIfEphemeral(_req, res, next) {
 
 /* ------------------------------------------------------------------ *
  * The public catalogue deliberately never returns stock_qty. Shoppers
- * see a coarse availability label; the real numbers stay behind the
- * admin login.
+ * see a coarse availability label (catalogue.js); the real numbers stay
+ * behind the admin login.
  * ------------------------------------------------------------------ */
-
-function availability(row) {
-  if (row.stock_qty <= 0) return 'out_of_stock'
-  if (row.stock_qty <= row.low_stock) return 'low_stock'
-  return 'in_stock'
-}
 
 function toPublicProduct(row) {
   return {
@@ -43,19 +39,11 @@ function toPublicProduct(row) {
     description: row.description,
     price: row.price,
     mrp: row.mrp,
-    discount: row.mrp > row.price ? Math.round(((row.mrp - row.price) / row.mrp) * 100) : 0,
+    discount: discount(row),
     image_url: row.image_url,
     specs: safeJson(row.specs, []),
     featured: !!row.featured,
     availability: availability(row),
-  }
-}
-
-function safeJson(value, fallback) {
-  try {
-    return JSON.parse(value)
-  } catch {
-    return fallback
   }
 }
 
@@ -64,7 +52,7 @@ publicRouter.get('/health', (_req, res) => {
 })
 
 publicRouter.get('/settings', (_req, res) => {
-  res.json(allSettings())
+  res.json(publicSettings(allSettings()))
 })
 
 publicRouter.get('/captcha', rateLimit({ key: 'captcha', max: 60, windowMs: 60_000 }), (_req, res) => {
@@ -114,9 +102,7 @@ publicRouter.get('/products/:slug', (req, res) => {
   const row = db.prepare('SELECT * FROM products WHERE slug = ? AND active = 1').get(req.params.slug)
   if (!row) return res.status(404).json({ error: 'Product not found' })
 
-  const related = db
-    .prepare('SELECT * FROM products WHERE category = ? AND id != ? AND active = 1 ORDER BY featured DESC LIMIT 4')
-    .all(row.category, row.id)
+  const related = relatedProducts(db, row)
 
   res.json({ product: toPublicProduct(row), related: related.map(toPublicProduct) })
 })

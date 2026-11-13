@@ -41,6 +41,9 @@ RUN npm install --omit=dev --no-audit --no-fund
 
 COPY server/ ./server/
 COPY --from=client /app/client/dist ./client/dist
+# Services, FAQ and the shop's story: bundled into the client by Vite, and
+# read by the server too (server/content.js) to put them in the HTML it sends.
+COPY client/src/data ./client/src/data
 COPY vmp-entrypoint.sh /usr/local/bin/vmp-entrypoint.sh
 RUN chmod +x /usr/local/bin/vmp-entrypoint.sh
 

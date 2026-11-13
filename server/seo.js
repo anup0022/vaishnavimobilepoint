@@ -1,8 +1,13 @@
 import { allSettings, db } from './db.js'
 import { EPHEMERAL } from './util.js'
+import { SERVICES } from './content.js'
+import { availability, CATEGORY_LABELS, hasRealPhoto } from './catalogue.js'
+import { mapsUrl, socialProfiles, storefrontSettings } from './shop.js'
+import { pageContent } from './prerender.js'
 
 /**
- * Local-search plumbing: robots.txt, sitemap.xml and LocalBusiness JSON-LD.
+ * Local-search plumbing: robots.txt, sitemap.xml, structured data and the
+ * per-page head tags.
  *
  * All of it is generated from the CMS settings, so changing the phone number
  * or hours in the admin updates what Google reads — nothing is hardcoded.
@@ -20,64 +25,119 @@ function siteUrl(req) {
 }
 
 /** Pages worth indexing. The staff CMS is deliberately excluded. */
-const PUBLIC_PATHS = [
-  { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/products', priority: '0.9', changefreq: 'daily' },
-  { path: '/services', priority: '0.9', changefreq: 'monthly' },
-  { path: '/book', priority: '0.8', changefreq: 'monthly' },
-  { path: '/track', priority: '0.7', changefreq: 'monthly' },
-  { path: '/feedback', priority: '0.7', changefreq: 'weekly' },
-  { path: '/contact', priority: '0.8', changefreq: 'monthly' },
-  { path: '/about', priority: '0.6', changefreq: 'monthly' },
-  { path: '/faq', priority: '0.6', changefreq: 'monthly' },
-]
+const PUBLIC_PATHS = ['/', '/products', '/services', '/book', '/track', '/feedback', '/contact', '/about', '/faq']
+
+/**
+ * "/faq///" -> "/faq". A loop rather than /\/+$/, which backtracks on every
+ * slash in a long run of them and let one crafted URL hold the server.
+ */
+export function trimTrailingSlashes(path) {
+  let end = path.length
+  while (end > 1 && path.charCodeAt(end - 1) === 47) end--
+  return path.slice(0, end)
+}
+
+/** An absolute http(s) URL for a stored image path, or undefined if it is not one. */
+function absoluteUrl(value, base) {
+  try {
+    const url = new URL(value, `${base}/`)
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : undefined
+  } catch {
+    return undefined
+  }
+}
 
 function escapeXml(value) {
   return String(value).replace(/[<>&'"]/g, (c) =>
     ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[c])
 }
 
+/*
+ * robots.txt used to say "Disallow: /api/". Every catalogue page fetches its
+ * product from /api, and Google's renderer obeys robots.txt for the requests
+ * a page makes, so Googlebot rendered all 24 product pages as "Item not
+ * found". The API is now crawlable; its responses carry
+ * "X-Robots-Tag: noindex" instead (server/index.js), which keeps raw JSON out
+ * of results without hiding it from the renderer.
+ *
+ * /admin is no longer disallowed either: a blocked URL can still be indexed
+ * from a link, because the crawler never sees its noindex. Every /admin page
+ * now answers with a noindex header and meta tag that crawlers can read.
+ */
 export function robotsTxt(req) {
   const base = siteUrl(req)
-  return [
-    'User-agent: *',
-    'Allow: /',
-    // Keep the staff CMS and the API out of the index.
-    'Disallow: /admin',
-    'Disallow: /api/',
-    '',
-    `Sitemap: ${base}/sitemap.xml`,
-    '',
-  ].join('\n')
+  return ['User-agent: *', 'Allow: /', '', `Sitemap: ${base}/sitemap.xml`, ''].join('\n')
 }
 
-export function sitemapXml(req, products = []) {
+/** "2026-11-10 21:12:02" (SQLite, UTC) -> "2026-11-10" */
+function day(value) {
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value || ''))
+  return match ? match[1] : null
+}
+
+/** The later of two "YYYY-MM-DD" days, either of which may be missing. */
+function later(a, b) {
+  if (!a) return b
+  if (!b) return a
+  return a > b ? a : b
+}
+
+/**
+ * <lastmod> is the one sitemap hint Google and Bing still use, and only while
+ * it stays accurate; <priority> and <changefreq> are ignored, so they are
+ * gone. A product URL dates from its row's last change. Pages change with a
+ * deploy (`builtAt`, the client build), and the pages that list live data
+ * also when that data does: / and /products with the newest product change,
+ * /feedback with the newest published review.
+ */
+export function sitemapXml(req, products = [], { builtAt = null, reviewsAt = null } = {}) {
   const base = siteUrl(req)
+  const built = builtAt ? builtAt.toISOString().slice(0, 10) : null
+  const newestProduct = products.map((p) => day(p.updated_at)).filter(Boolean).sort().pop() || null
+  const pageDate = {
+    '/': later(built, newestProduct),
+    '/products': later(built, newestProduct),
+    '/feedback': later(built, day(reviewsAt)),
+  }
   const urls = [
-    ...PUBLIC_PATHS.map((p) => ({ loc: base + p.path, priority: p.priority, changefreq: p.changefreq })),
-    ...products.map((p) => ({ loc: `${base}/products/${p.slug}`, priority: '0.7', changefreq: 'weekly' })),
+    ...PUBLIC_PATHS.map((path) => ({ loc: base + path, lastmod: pageDate[path] ?? built })),
+    ...products.map((p) => ({ loc: `${base}/products/${p.slug}`, lastmod: day(p.updated_at) })),
   ]
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url>
-    <loc>${escapeXml(u.loc)}</loc>
-    <changefreq>${u.changefreq}</changefreq>
-    <priority>${u.priority}</priority>
+    <loc>${escapeXml(u.loc)}</loc>${u.lastmod ? `
+    <lastmod>${u.lastmod}</lastmod>` : ''}
   </url>`).join('\n')}
 </urlset>
 `
 }
 
-/**
- * schema.org MobilePhoneStore markup. This is what puts the shop's hours,
- * phone and map pin into Google's local results, so the fields come straight
- * from the CMS rather than being duplicated here.
- */
-export function localBusinessJsonLd(req) {
-  const s = allSettings()
-  const base = siteUrl(req)
+/* ------------------------------------------------------------------ *
+ * Structured data
+ *
+ * One JSON-LD @graph per page. Every page carries the store (what puts the
+ * shop's hours, phone and map pin into local results) and the website
+ * (which gives Google the site name to show); product pages add the
+ * product with its offer and a breadcrumb, and /services lists the repairs
+ * with their published price ranges. The nodes refer to each other by @id,
+ * so search engines read one connected description of one shop.
+ * ------------------------------------------------------------------ */
 
+/** "10:00 AM – 9:00 PM" -> ["10:00", "21:00"] */
+function parseHours(text) {
+  const matches = String(text).match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/gi)
+  if (!matches || matches.length < 2) return [null, null]
+  return matches.slice(0, 2).map((m) => {
+    const [, h, min = '00', ap] = m.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/i)
+    let hour = Number.parseInt(h, 10) % 12
+    if (/pm/i.test(ap)) hour += 12
+    return `${String(hour).padStart(2, '0')}:${min}`
+  })
+}
+
+function storeNode(s, base) {
   const openingHours = []
   if (s.hours_weekday) {
     const [opens, closes] = parseHours(s.hours_weekday)
@@ -96,17 +156,22 @@ export function localBusinessJsonLd(req) {
     }
   }
 
-  const data = {
-    '@context': 'https://schema.org',
+  return {
     '@type': 'MobilePhoneStore',
+    '@id': `${base}/#store`,
     name: s.shop_name,
     alternateName: [s.shop_name_local, 'Vaishnavi Mobile Center', 'Vaishnavi Dial Point'].filter(Boolean),
     description: s.tagline,
-    url: base,
-    telephone: [s.phone_primary, s.phone_secondary].filter(Boolean),
+    url: `${base}/`,
+    // One number per property: the second line is a contact point of its own.
+    telephone: s.phone_primary || undefined,
+    contactPoint: s.phone_secondary
+      ? [{ '@type': 'ContactPoint', telephone: s.phone_secondary, contactType: 'customer service', areaServed: 'IN', availableLanguage: ['en', 'hi'] }]
+      : undefined,
     email: s.email || undefined,
     foundingDate: s.established || undefined,
-    image: `${base}/shop/banner-design-social.jpg`,
+    // The storefront photo first: a promotional banner is not a picture of the shop.
+    image: [`${base}/shop/shop-10.jpg`, `${base}/shop/banner-design-social.jpg`],
     priceRange: '₹₹',
     address: {
       '@type': 'PostalAddress',
@@ -119,25 +184,118 @@ export function localBusinessJsonLd(req) {
     geo: s.latitude && s.longitude
       ? { '@type': 'GeoCoordinates', latitude: s.latitude, longitude: s.longitude }
       : undefined,
+    hasMap: mapsUrl(s),
     openingHoursSpecification: openingHours.length ? openingHours : undefined,
-    sameAs: [s.social_facebook, s.social_instagram, s.social_youtube].filter(Boolean),
+    // Only real profiles: the seed's bare https://facebook.com/ claimed the
+    // shop was Facebook itself.
+    sameAs: socialProfiles(s),
     areaServed: { '@type': 'City', name: 'Ranchi' },
   }
-
-  // Drop undefined keys so the emitted JSON stays clean.
-  return JSON.stringify(JSON.parse(JSON.stringify(data)))
 }
 
-/** "10:00 AM – 9:00 PM" -> ["10:00", "21:00"] */
-function parseHours(text) {
-  const matches = String(text).match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/gi)
-  if (!matches || matches.length < 2) return [null, null]
-  return matches.slice(0, 2).map((m) => {
-    const [, h, min = '00', ap] = m.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/i)
-    let hour = Number.parseInt(h, 10) % 12
-    if (/pm/i.test(ap)) hour += 12
-    return `${String(hour).padStart(2, '0')}:${min}`
-  })
+function websiteNode(s, base) {
+  return {
+    '@type': 'WebSite',
+    '@id': `${base}/#website`,
+    url: `${base}/`,
+    name: s.shop_name,
+    alternateName: s.shop_name_local || undefined,
+    inLanguage: 'en-IN',
+    publisher: { '@id': `${base}/#store` },
+  }
+}
+
+const SCHEMA_AVAILABILITY = {
+  in_stock: 'https://schema.org/InStock',
+  low_stock: 'https://schema.org/LimitedAvailability',
+  out_of_stock: 'https://schema.org/OutOfStock',
+}
+
+/**
+ * The breadcrumb, and — once the item has been checked — the product and its
+ * offer.
+ *
+ * The catalogue is still the demo seed's: prices, MRPs and "in stock" that
+ * the counter has not confirmed. Offer markup turns them into rich results
+ * ("₹58,999 · In stock"), and marking up an offer the shop might not honour
+ * is misleading structured data under Google's policies. So a product gets
+ * its Product node only once staff upload its real photo (CMS > Stock),
+ * which is when someone at the counter has had the item in hand and checked
+ * its price. A product without a price never gets one: Google needs an
+ * offer (or reviews) to use it.
+ */
+function productNodes(row, base, canonical) {
+  const breadcrumb = {
+    '@type': 'BreadcrumbList',
+    '@id': `${canonical}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${base}/` },
+      { '@type': 'ListItem', position: 2, name: 'Shop', item: `${base}/products` },
+      { '@type': 'ListItem', position: 3, name: row.name },
+    ],
+  }
+  if (!(row.price > 0) || !hasRealPhoto(row)) return [breadcrumb]
+  const product = {
+    '@type': 'Product',
+    '@id': `${canonical}#product`,
+    name: row.name,
+    description: row.description || undefined,
+    sku: row.sku,
+    brand: { '@type': 'Brand', name: row.brand },
+    category: CATEGORY_LABELS[row.category] || row.category,
+    image: absoluteUrl(row.image_url, base),
+    offers: {
+      '@type': 'Offer',
+      url: canonical,
+      price: row.price,
+      priceCurrency: 'INR',
+      availability: SCHEMA_AVAILABILITY[availability(row)],
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@id': `${base}/#store` },
+    },
+  }
+  return [product, breadcrumb]
+}
+
+/** The published repair prices, as an offer catalogue of the store. */
+function repairCatalogue(base) {
+  return {
+    '@type': 'OfferCatalog',
+    '@id': `${base}/services#repairs`,
+    name: 'Mobile phone repairs',
+    itemListElement: SERVICES.map((service) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name: service.title, description: service.detail },
+      priceSpecification: service.priceMin
+        ? {
+            '@type': 'PriceSpecification',
+            priceCurrency: 'INR',
+            minPrice: service.priceMin,
+            maxPrice: service.priceMax || undefined,
+          }
+        : undefined,
+    })),
+  }
+}
+
+/**
+ * The page's JSON-LD block. Undefined keys are dropped, and "<" is escaped
+ * so text from the CMS can never close the script tag.
+ */
+function structuredData(req, path, canonical, product) {
+  try {
+    const s = allSettings()
+    const base = siteUrl(req)
+    const store = storeNode(s, base)
+    if (path === '/services' && SERVICES.length) store.hasOfferCatalog = repairCatalogue(base)
+    const graph = [store, websiteNode(s, base), ...(product ? productNodes(product, base, canonical) : [])]
+    const json = JSON.stringify(JSON.parse(JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })))
+    return json.replace(/</g, '\\u003c')
+  } catch (err) {
+    // Odd CMS data must cost the page its markup, never the page itself.
+    console.error('[structured-data]', err.message)
+    return ''
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -202,7 +360,7 @@ function staticPages(s) {
     },
     '/about': {
       title: `About Us — Since ${since} | ${shop}`,
-      description: `From one recharge counter in ${since} to a ${where} landmark: phones, accessories and an in-house repair bench that uses genuine parts only.`,
+      description: `From one recharge counter in ${since} to a ${where} landmark: phones, accessories and an in-house repair bench fitting original and service-pack parts.`,
     },
     '/faq': {
       title: `Repair & Shopping FAQ | ${shop}, Ranchi`,
@@ -211,16 +369,32 @@ function staticPages(s) {
   }
 }
 
-function productPage(shop, slug) {
-  const p = db
-    .prepare('SELECT name, description, price FROM products WHERE slug = ? AND active = 1')
-    .get(slug)
-  if (!p) return null
-  const price = p.price > 0 ? ` at ${inr.format(p.price)}` : ''
+/**
+ * The client fills the same templates when someone moves between products
+ * in the app (client/src/lib/pageMeta.ts), so the wording lives here only.
+ */
+function productTemplates(shop) {
   return {
-    title: `${p.name} in Ranchi | ${shop}`,
-    description: clip(`${p.name}${price} from ${shop}, Ratu Road, Ranchi. ${p.description}`),
+    title: `{name} in Ranchi | ${shop}`,
+    description: `{name}{price} from ${shop}, Ratu Road, Ranchi. {description}`,
+  }
+}
+
+function productPage(shop, slug) {
+  const row = db.prepare('SELECT * FROM products WHERE slug = ? AND active = 1').get(slug)
+  if (!row) return null
+  const templates = productTemplates(shop)
+  const price = row.price > 0 ? ` at ${inr.format(row.price)}` : ''
+  return {
+    title: templates.title.replace('{name}', () => row.name),
+    description: clip(
+      templates.description
+        .replace('{name}', () => row.name)
+        .replace('{price}', () => price)
+        .replace('{description}', () => row.description),
+    ),
     ogType: 'product',
+    row,
   }
 }
 
@@ -234,21 +408,27 @@ const GOOGLE_VERIFY = /^[\w-]{20,100}$/.test(process.env.GOOGLE_SITE_VERIFICATIO
 const BING_VERIFY = /^[\w-]{20,100}$/.test(process.env.BING_SITE_VERIFICATION || '') ? process.env.BING_SITE_VERIFICATION : ''
 export const ANALYTICS_ID = /^G-[A-Z0-9]{4,20}$/.test(process.env.GA_MEASUREMENT_ID || '') ? process.env.GA_MEASUREMENT_ID : ''
 
-/** Replaces the shell's own copy of a tag, wherever the build put it. */
+/**
+ * Replaces the shell's own copy of a tag, wherever the build put it.
+ * Replacement functions throughout: a string replacement treats "$&", "$'"
+ * and "$`" in CMS text as commands and would paste parts of the page into it.
+ */
 function swap(html, pattern, tag) {
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `    ${tag}\n  </head>`)
+  return pattern.test(html) ? html.replace(pattern, () => tag) : html.replace('</head>', () => `    ${tag}\n  </head>`)
 }
 
 /**
  * Stamps the built shell for one request: title, description, social card,
- * canonical URL, structured data — and the status code, because a URL that
- * matches no page must answer 404 rather than 200 with the home page's copy.
+ * canonical URL, structured data, the page's content in #root — and the
+ * status code, because a URL that matches no page must answer 404 rather
+ * than 200 with the home page's copy. `noindex` tells the caller to send the
+ * matching X-Robots-Tag header.
  */
 export function renderPage(shell, req) {
   const s = allSettings()
   const shop = s.shop_name || 'Vaishnavi Mobile Point'
   const base = siteUrl(req)
-  const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path
+  const path = trimTrailingSlashes(req.path)
   const pages = staticPages(s)
   const admin = path === '/admin' || path.startsWith('/admin/')
   const notFound = {
@@ -277,13 +457,20 @@ export function renderPage(shell, req) {
   const banner = `${base}/shop/banner-design-social.jpg`
   const title = escapeXml(meta.title)
   const description = escapeXml(meta.description || '')
+  const templates = productTemplates(shop)
+  const jsonLd = noindex ? '' : structuredData(req, path, canonical, meta.row)
 
   // What the client needs to keep the tab title right as people navigate.
   const clientMeta = {
     pages: Object.fromEntries(Object.entries(pages).map(([p, m]) => [p, { title: m.title, description: m.description }])),
-    product: `{name} in Ranchi | ${shop}`,
+    product: templates.title,
+    productDescription: templates.description,
     notFound,
     analytics: ANALYTICS_ID || undefined,
+    // The settings the storefront reads, so the first render already has the
+    // offer bar, hours and phone numbers instead of growing the page when
+    // /api/settings answers (client/src/lib/useSettings.tsx).
+    settings: storefrontSettings(s),
   }
 
   let html = shell
@@ -311,7 +498,10 @@ export function renderPage(shell, req) {
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`,
     `<meta name="twitter:image" content="${escapeXml(banner)}" />`,
-    status === 200 ? `<script type="application/ld+json">${localBusinessJsonLd(req)}</script>` : '',
+    // Only the home page loads Unsplash photography (its hero slides), and its
+    // largest image is the first of them: open that connection early.
+    path === '/' ? '<link rel="preconnect" href="https://images.unsplash.com" />' : '',
+    jsonLd ? `<script type="application/ld+json">${jsonLd}</script>` : '',
     GOOGLE_VERIFY ? `<meta name="google-site-verification" content="${GOOGLE_VERIFY}" />` : '',
     BING_VERIFY ? `<meta name="msvalidate.01" content="${BING_VERIFY}" />` : '',
     // A meta tag rather than an inline script: script-src is 'self' with no
@@ -323,7 +513,12 @@ export function renderPage(shell, req) {
     `<script type="application/json" id="vmp-meta">${JSON.stringify(clientMeta).replace(/</g, '\\u003c')}</script>`,
   ].filter(Boolean).join('\n    ')
 
-  return { status, html: html.replace('</head>', `    ${tags}\n  </head>`) }
+  html = html.replace('</head>', () => `    ${tags}\n  </head>`)
+  // The page's own content, for crawlers and readers that never run the app
+  // (prerender.js). React replaces it on its first render.
+  html = html.replace(/<div id="root"><\/div>/, () => `<div id="root">${pageContent(path, status)}</div>`)
+
+  return { status, noindex, html }
 }
 
 export { PUBLIC_PATHS }

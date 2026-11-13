@@ -25,6 +25,8 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([])
   const [facets, setFacets] = useState<Facets>({ categories: [], brands: [] })
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
 
   const category = params.get('category') || 'all'
@@ -60,15 +62,21 @@ export default function Products() {
 
   useEffect(() => {
     setLoading(true)
+    setFailed(false)
     api
       .get<{ products: Product[]; facets: Facets }>(`/api/products?${query}`)
       .then((d) => {
         setProducts(d.products)
         setFacets(d.facets)
       })
-      .catch(() => setProducts([]))
+      // A failed request is not an empty shop: say so and offer a retry,
+      // instead of "0 items in store" and "Nothing matches that".
+      .catch(() => {
+        setProducts([])
+        setFailed(true)
+      })
       .finally(() => setLoading(false))
-  }, [query])
+  }, [query, attempt])
 
   function update(key: string, value: string) {
     setParams(
@@ -213,7 +221,7 @@ export default function Products() {
           <div>
             <h2 className="sr-only">Products</h2>
             <p className="mb-6 text-sm text-mist-500">
-              {loading ? 'Loading…' : `${products.length} item${products.length === 1 ? '' : 's'} in store`}
+              {loading ? 'Loading…' : failed ? ' ' : `${products.length} item${products.length === 1 ? '' : 's'} in store`}
             </p>
 
             {loading ? (
@@ -221,6 +229,17 @@ export default function Products() {
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="shimmer h-96 rounded-3xl" />
                 ))}
+              </div>
+            ) : failed ? (
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-ink-600 py-24 text-center">
+                <PackageSearch size={44} className="mb-5 text-mist-500" />
+                <h3 className="mb-2 text-xl font-bold">We could not load the catalogue</h3>
+                <p className="mb-6 max-w-sm text-sm text-mist-400">
+                  The connection dropped or the server is busy. Please try again.
+                </p>
+                <button onClick={() => setAttempt((n) => n + 1)} className="btn-primary">
+                  Try again
+                </button>
               </div>
             ) : products.length === 0 ? (
               <motion.div

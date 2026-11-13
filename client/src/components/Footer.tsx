@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
 import { Facebook, InstagramLogo, WhatsAppLogo, Youtube } from './BrandIcons'
-import { useSettings, fullAddress, isRealProfile, whatsappLink } from '@/lib/useSettings'
+import { useSettings, fullAddress, googleReviewUrl, isRealProfile, mapDirectionsUrl, whatsappLink } from '@/lib/useSettings'
 import Wordmark from './store/Wordmark'
 import './store/store.css'
 
@@ -146,6 +146,16 @@ export default function Footer() {
                   {phone}
                 </a>
               ))}
+            </p>
+            <p className="flex flex-col">
+              <a href={mapDirectionsUrl(settings)} target="_blank" rel="noreferrer noopener" className="py-1 text-black transition-colors hover:text-[var(--st-accent-ink)]">
+                Find us on Google Maps
+              </a>
+              {googleReviewUrl(settings) && (
+                <a href={googleReviewUrl(settings)} target="_blank" rel="noreferrer noopener" className="py-1 text-black transition-colors hover:text-[var(--st-accent-ink)]">
+                  Review us on Google
+                </a>
+              )}
             </p>
           </address>
         </div>

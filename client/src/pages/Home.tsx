@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, type Product, type Review } from '@/lib/api'
 import { money } from '@/lib/format'
-import { useSettings } from '@/lib/useSettings'
 import { cropped } from '@/lib/images'
+import SERVICES from '@/data/services.json'
 import HeroSlider, { type HeroSlide } from '@/components/store/HeroSlider'
 import CategoryTiles, { type CategoryTile } from '@/components/store/CategoryTiles'
+import LocalIntro from '@/components/store/LocalIntro'
 import ProductShowcase from '@/components/store/ProductShowcase'
 import PromoBanner from '@/components/store/PromoBanner'
 import Testimonials from '@/components/store/Testimonials'
@@ -36,8 +37,17 @@ const CATEGORIES = [
   { key: 'accessory', name: 'Chargers & Accessories', photo: 'photo-1583863788434-e58a36330cf0' },
 ]
 
+/** "Battery from ₹899 · Screen from ₹1,499", from the published service prices. */
+function repairFrom(): string {
+  const from = (title: string) => SERVICES.find((s) => s.title === title)?.priceMin
+  const battery = from('Battery Replacement')
+  const screen = from('Screen Replacement')
+  return [battery && `Battery from ${money(battery)}`, screen && `Screen from ${money(screen)}`]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 export default function Home() {
-  const settings = useSettings()
   const [products, setProducts] = useState<Product[] | null>(null)
   const [reviews, setReviews] = useState<Review[] | null>(null)
 
@@ -80,8 +90,8 @@ export default function Home() {
       alt: 'Two white smartwatches on a grey surface',
     },
     {
-      // Prices as published on the Services page.
-      key: 'repair', title: 'Same-day repairs', detail: 'Battery from ₹899 · Screen from ₹1,499', cta: 'Book a repair',
+      // Prices as published on the Services page (src/data/services.json).
+      key: 'repair', title: 'Same-day repairs', detail: repairFrom(), cta: 'Book a repair',
       to: '/book', image: heroImage('photo-1592750475338-74b7b21085ab'),
       alt: 'The rear cameras of a smartphone in close-up',
     },
@@ -117,12 +127,10 @@ export default function Home() {
 
   return (
     <div className="st bg-white">
-      <h1 className="sr-only">
-        {settings.shop_name} — phones, accessories and same-day mobile repairs on Ratu Road, Ranchi
-      </h1>
-
       <HeroSlider slides={slides} />
       <CategoryTiles tiles={tiles} />
+      {/* The page's H1, the shop's hours and the ways to reach it, in sight. */}
+      <LocalIntro />
 
       <ProductShowcase
         id="best-sellers"

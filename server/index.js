@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { cookies } from './util.js'
 import { publicRouter } from './routes/public.js'
 import { adminRouter } from './routes/admin.js'
-import { robotsTxt, sitemapXml, renderPage, ANALYTICS_ID } from './seo.js'
+import { robotsTxt, sitemapXml, renderPage, trimTrailingSlashes, ANALYTICS_ID } from './seo.js'
 import { db } from './db.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -97,8 +97,51 @@ app.use((req, res, next) => {
   if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
     res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains')
   }
-  // Nothing the API returns should sit in a shared cache.
-  if (req.path.startsWith('/api')) res.setHeader('Cache-Control', 'no-store')
+  if (req.path.startsWith('/api')) {
+    // Nothing the API returns should sit in a shared cache.
+    res.setHeader('Cache-Control', 'no-store')
+    // Crawlable, because pages render from it (see robotsTxt in seo.js),
+    // but never a search result in its own right.
+    res.setHeader('X-Robots-Tag', 'noindex')
+  }
+  // Developer demos that ship in client/public: reachable, never indexed.
+  if (req.path.startsWith('/demos/')) res.setHeader('X-Robots-Tag', 'noindex')
+  next()
+})
+
+/*
+ * One address per page. "/products/" and "/products" served the same page,
+ * and "/index.html" served the shell before it was stamped with a title or
+ * canonical. Each now redirects permanently to the address the sitemap and
+ * the canonical tags use. GET and HEAD only, so no form post is redirected.
+ */
+const SITE_ORIGIN = (process.env.SITE_URL || '').trim().replace(/\/+$/, '')
+const SITE_HOSTNAME = (() => {
+  try {
+    return SITE_ORIGIN ? new URL(SITE_ORIGIN).hostname : ''
+  } catch {
+    return ''
+  }
+})()
+
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+  // The API, and with it Render's health check, answers on any host.
+  if (req.path.startsWith('/api')) return next()
+  // Render serves the site at its *.onrender.com address too: a complete
+  // second copy of every page. Send it to the real domain.
+  if (SITE_HOSTNAME && req.hostname !== SITE_HOSTNAME && req.hostname?.endsWith('.onrender.com')) {
+    return res.redirect(301, `${SITE_ORIGIN}${req.originalUrl}`)
+  }
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : ''
+  if (req.path === '/index.html') return res.redirect(301, `/${query}`)
+  if (req.path.length > 1 && req.path.endsWith('/')) {
+    const target = trimTrailingSlashes(req.path)
+    // Only ordinary paths, one slash between plain segments. "//example.com/"
+    // or "/\example.com/" must never become a Location a browser reads as
+    // another site; those fall through to the 404 page instead.
+    if (/^(\/[\w.~%-]+)+$/.test(target)) return res.redirect(301, `${target}${query}`)
+  }
   next()
 })
 app.use(express.json({ limit: '1mb' }))
@@ -126,6 +169,9 @@ app.use(
     maxAge: '7d',
     dotfiles: 'ignore',
     index: false,
+    // No "/uploads" -> "/uploads/" directory redirect: the trailing-slash
+    // redirect above would send it straight back, forever.
+    redirect: false,
     setHeaders: (res, filePath) => {
       const ok = /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(filePath)
       if (!ok) {
@@ -160,19 +206,41 @@ app.use('/api', (_req, res) => res.status(404).json({ error: 'Unknown endpoint.'
 // Local-search files, generated from the CMS settings.
 app.get('/robots.txt', (req, res) => res.type('text/plain').send(robotsTxt(req)))
 
+// The client build's date stands in for the last change to the static pages.
+const SHELL_BUILT = fs.existsSync(path.join(CLIENT_DIST, 'index.html'))
+  ? fs.statSync(path.join(CLIENT_DIST, 'index.html')).mtime
+  : null
+
 app.get('/sitemap.xml', (req, res) => {
-  const products = db.prepare('SELECT slug FROM products WHERE active = 1').all()
-  res.type('application/xml').send(sitemapXml(req, products))
+  const products = db.prepare('SELECT slug, updated_at FROM products WHERE active = 1').all()
+  const reviewsAt = db.prepare('SELECT MAX(created_at) AS at FROM feedback WHERE approved = 1').get().at
+  res.type('application/xml').send(sitemapXml(req, products, { builtAt: SHELL_BUILT, reviewsAt }))
 })
 
 if (fs.existsSync(CLIENT_DIST)) {
-  app.use(express.static(CLIENT_DIST, { index: false, maxAge: '1h' }))
+  app.use(
+    express.static(CLIENT_DIST, {
+      index: false,
+      maxAge: '1h',
+      // A directory such as /shop or /assets is not a page: no redirect to
+      // "/shop/" (which the trailing-slash rule would bounce back), just 404.
+      redirect: false,
+      setHeaders: (res, filePath) => {
+        // Vite names everything under assets/ by a hash of its contents, so a
+        // changed file gets a new name: these can be cached for a year.
+        if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        }
+      },
+    }),
+  )
 
-  // The shell is read once and then stamped per-request with the canonical URL
-  // and the shop's LocalBusiness markup.
+  // The shell is read once and then stamped per-request with the page's
+  // title, canonical URL, structured data and content.
   const shell = fs.readFileSync(path.join(CLIENT_DIST, 'index.html'), 'utf8')
   app.get('*', (req, res) => {
     const page = renderPage(shell, req)
+    if (page.noindex) res.setHeader('X-Robots-Tag', 'noindex')
     res.status(page.status).type('html').send(page.html)
   })
 } else {

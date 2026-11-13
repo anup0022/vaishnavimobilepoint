@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Search, Ticket, Phone, RotateCcw, UserCog, Smartphone, CalendarClock, Info,
+  Search, Ticket, Phone, RotateCcw, UserCog, Smartphone, CalendarClock, Info, Star,
 } from 'lucide-react'
 import { api, ApiError, type BookingUpdate } from '@/lib/api'
 import { useCaptcha } from '@/lib/useCaptcha'
 import { useToast } from '@/components/Toast'
-import { useSettings } from '@/lib/useSettings'
+import { googleReviewUrl, useSettings } from '@/lib/useSettings'
 import { formatDateTime, mobileDigits, mobileInput } from '@/lib/format'
 import CaptchaBox from '@/components/CaptchaBox'
 import StatusBadge, { STATUS_META } from '@/components/StatusBadge'
@@ -358,6 +358,29 @@ export default function Track() {
                   </p>
                 </motion.div>
               )}
+
+              {/*
+                A finished repair is the moment customers are most likely to
+                leave a review, and the shop's Google listing had one review
+                against neighbours with dozens to thousands. Asked of every
+                customer, good experience or bad: Google's rules forbid
+                inviting only the happy ones.
+              */}
+              {(result.booking.status === 'ready' || result.booking.status === 'delivered') &&
+                googleReviewUrl(settings) && (
+                  <p className="mt-6 text-center text-sm text-mist-400">
+                    How did we do?{' '}
+                    <a
+                      href={googleReviewUrl(settings)}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline"
+                    >
+                      <Star size={14} /> Review us on Google
+                    </a>{' '}
+                    — it takes a minute and helps other people in Ranchi decide.
+                  </p>
+                )}
 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <button onClick={reset} className="btn-ghost">

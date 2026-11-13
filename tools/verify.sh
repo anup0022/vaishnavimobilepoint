@@ -55,7 +55,9 @@ check "JSON-LD local business"          '"@type":"MobilePhoneStore"'  "$HOME_HTM
 JSONLD_DIGITS=$(printf '%s' "$HOME_HTML" | python3 -c "
 import sys,re,json
 m=re.search(r'<script type=\"application/ld\+json\">(.*?)</script>',sys.stdin.read(),re.S)
-d=json.loads(m.group(1)); t=d.get('telephone')
+d=json.loads(m.group(1))
+store=next((n for n in d.get('@graph',[d]) if n.get('@type')=='MobilePhoneStore'),{})
+t=store.get('telephone')
 print(re.sub(r'\\D','',' '.join(t if isinstance(t,list) else [t or ''])))")
 check "JSON-LD carries the shop phone"  "9122266808"                  "$JSONLD_DIGITS"
 ROBOTS=$(curl -s "$BASE/robots.txt")

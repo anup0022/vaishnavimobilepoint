@@ -9,27 +9,18 @@ import Magnetic from '@/components/Magnetic'
 import SmartImage from '@/components/SmartImage'
 import { shopPhoto } from '@/lib/images'
 import { useSettings } from '@/lib/useSettings'
+import SERVICE_DATA from '@/data/services.json'
 
-const SERVICES = [
-  { icon: Smartphone, title: 'Screen Replacement', price: '₹1,499 – ₹14,999', time: '60–90 min', warranty: '6 months',
-    detail: 'Original or service-pack displays for every brand we stock. We re-apply factory waterproof adhesive and test touch across the full panel before handing it back.' },
-  { icon: BatteryCharging, title: 'Battery Replacement', price: '₹899 – ₹4,499', time: '30–45 min', warranty: '6 months',
-    detail: 'Full-capacity cells only. We print a battery health report before and after so you can see the difference, and dispose of the old cell safely.' },
-  { icon: Cable, title: 'Charging Port Repair', price: '₹699 – ₹2,499', time: '45–60 min', warranty: '3 months',
-    detail: 'Micro-soldered connector or flex replacement, then verified at the phone’s rated fast-charge speed rather than just "it charges".' },
-  { icon: Droplets, title: 'Water Damage Rescue', price: '₹1,200 onwards', time: '24–48 hrs', warranty: '1 month',
-    detail: 'Ultrasonic board cleaning, corrosion treatment and component-level testing. If we cannot revive it, you pay nothing for the attempt.' },
-  { icon: Cpu, title: 'Motherboard / Chip-level', price: 'On diagnosis', time: '2–4 days', warranty: '3 months',
-    detail: 'Reballing, IC replacement and track repair under a microscope — the work most authorised centres will not attempt on an out-of-warranty device.' },
-  { icon: Camera, title: 'Camera Module Repair', price: '₹999 – ₹6,999', time: '60 min', warranty: '3 months',
-    detail: 'Blurry, shaking or black camera fixed by replacing the module and re-calibrating OIS where the phone supports it.' },
-  { icon: Volume2, title: 'Speaker & Mic Repair', price: '₹599 – ₹1,999', time: '45 min', warranty: '3 months',
-    detail: 'Muffled calls, dead earpiece or a mic nobody can hear — usually a mesh clean or a cheap module, never a new phone.' },
-  { icon: HardDriveDownload, title: 'Software & Data Recovery', price: '₹999 – ₹3,499', time: '4–24 hrs', warranty: '—',
-    detail: 'Bootloops, failed updates and forgotten patterns. We always attempt a data pull before any reflash, and nothing is copied or kept.' },
-  { icon: SignalHigh, title: 'Network / IMEI Issues', price: '₹1,499 onwards', time: '1–2 days', warranty: '3 months',
-    detail: 'No-signal and SIM-not-detected faults traced to the antenna, SIM reader or power amplifier, with legal repairs only.' },
-]
+/*
+ * The services and their prices live in src/data/services.json because the
+ * server reads the same file: it writes this list into the HTML it sends and
+ * into the page's structured data, so a crawler that never runs JavaScript
+ * reads exactly the prices a visitor sees. Change a price there, not here.
+ */
+const ICONS: Record<string, typeof Wrench> = {
+  Smartphone, BatteryCharging, Cable, Droplets, Cpu, Camera, Volume2, HardDriveDownload, SignalHigh,
+}
+const SERVICES = SERVICE_DATA.map((service) => ({ ...service, icon: ICONS[service.icon] ?? Wrench }))
 
 const PROMISES = [
   { icon: ShieldCheck, title: 'Written warranty slip', text: 'Every repair leaves with a printed warranty on the part and the labour.' },

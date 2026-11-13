@@ -11,6 +11,19 @@ import Reveal from '@/components/Reveal'
 import Counter from '@/components/Counter'
 import Magnetic from '@/components/Magnetic'
 import TalkToUs, { formsOffline } from '@/components/TalkToUs'
+import { googleReviewUrl, useSettings } from '@/lib/useSettings'
+
+/** First letters of a customer's name, for reviews left without a photo. */
+function initials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || '?'
+  )
+}
 
 const SERVICES = [
   'New Phone Purchase', 'Screen Replacement', 'Battery Replacement', 'Charging Port Repair',
@@ -28,6 +41,8 @@ interface FeedbackData {
 export default function Feedback() {
   const toast = useToast()
   const captcha = useCaptcha()
+  const settings = useSettings()
+  const googleReview = googleReviewUrl(settings)
   const [data, setData] = useState<FeedbackData | null>(null)
   const [filter, setFilter] = useState(0)
   const [submitted, setSubmitted] = useState(false)
@@ -79,10 +94,35 @@ export default function Feedback() {
             Unedited reviews left on this site. We publish the three-star ones too — you should know what you are
             walking into.
           </p>
+          {googleReview && (
+            <p className="mt-4 text-sm text-mist-400">
+              Most people find us on Google Maps, so a review there helps the next customer most.{' '}
+              <a href={googleReview} target="_blank" rel="noreferrer noopener" className="font-semibold text-brand-600 hover:underline">
+                Review us on Google
+              </a>
+            </p>
+          )}
         </Reveal>
 
-        {/* rating summary */}
-        {data && (
+        {data && data.total === 0 && (
+          <Reveal delay={0.1}>
+            <div className="mt-14 rounded-[2rem] border border-ink-700 bg-ink-900 lift p-8 text-center sm:p-10">
+              <h2 className="font-display text-2xl font-bold">No reviews on this site yet</h2>
+              <p className="mx-auto mt-3 max-w-lg text-mist-400">
+                Bought a phone or had a repair with us? Yours can be the first
+                {googleReview ? ' — here or on Google.' : '.'}
+              </p>
+              {googleReview && (
+                <a href={googleReview} target="_blank" rel="noreferrer noopener" className="btn-primary mt-7 inline-flex">
+                  <Star size={18} /> Review us on Google
+                </a>
+              )}
+            </div>
+          </Reveal>
+        )}
+
+        {/* rating summary: only once there is something to summarise */}
+        {data && data.total > 0 && (
           <Reveal delay={0.1}>
             <div className="mt-14 grid gap-8 rounded-[2rem] border border-ink-700 bg-ink-900 lift p-8 sm:p-10 lg:grid-cols-[260px_1fr] lg:items-center">
               <div className="text-center lg:border-r lg:border-ink-700">
@@ -183,7 +223,16 @@ export default function Feedback() {
                 </blockquote>
 
                 <figcaption className="flex items-center gap-3 border-t border-ink-700 pt-5">
-                  <SmartImage src={review.avatar_url} alt="" seed={String(review.id)} className="h-11 w-11 shrink-0 rounded-full" />
+                  {review.avatar_url ? (
+                    <SmartImage src={review.avatar_url} alt="" seed={String(review.id)} className="h-11 w-11 shrink-0 rounded-full" />
+                  ) : (
+                    <span
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600/15 text-sm font-bold text-brand-700"
+                      aria-hidden="true"
+                    >
+                      {initials(review.name)}
+                    </span>
+                  )}
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold">{review.name}</div>
                     <div className="truncate text-xs text-mist-500">

@@ -7,25 +7,20 @@ import { shopPhoto } from '@/lib/images'
 import Counter from '@/components/Counter'
 import Magnetic from '@/components/Magnetic'
 import { useSettings } from '@/lib/useSettings'
+// Shared with the server, which writes the story into the HTML it sends.
+import ABOUT from '@/data/about.json'
 
-const TIMELINE = [
-  { year: '2005', title: 'One counter, one idea', text: 'Vaishnavi Mobile Point opens in Churi Centre Gali off Ratu Road, selling recharge coupons, SIM cards and a handful of feature phones.' },
-  { year: '2010', title: 'The repair bench arrives', text: 'A second-hand microscope and a soldering station turn a retail counter into a proper service centre.' },
-  { year: '2015', title: 'Brand partnerships', text: 'Authorised dealership for the major Indian smartphone brands, with GST billing and sealed stock only.' },
-  { year: '2019', title: 'Chip-level capability', text: 'Board-level repair added, taking on the jobs authorised centres turn away as "not repairable".' },
-  { year: '2024', title: 'Tickets and tracking', text: 'Every repair gets a ticket number so customers can follow progress from home instead of calling the shop.' },
-  { year: 'Today', title: 'A Ratu Road landmark', text: 'A full storefront plus a three-bench service room, serving thousands of customers across Ranchi every year.' },
-]
-
-const VALUES = [
-  { icon: Heart, title: 'Tell the truth', text: 'If a repair is not worth the money we say so, even when it costs us the sale.' },
-  { icon: Award, title: 'Genuine or nothing', text: 'Original and service-pack parts, printed on the bill so you can verify them yourself.' },
-  { icon: Users, title: 'Explain, do not rush', text: 'Plenty of our customers are buying their first smartphone. Nobody leaves confused.' },
-  { icon: Store, title: 'Stay reachable', text: 'Same counter, same faces, same phone number for over a decade.' },
-]
+const TIMELINE = ABOUT.timeline
+const VALUE_ICONS: Record<string, typeof Heart> = { Heart, Award, Users, Store }
+const VALUES = ABOUT.values.map((value) => ({ ...value, icon: VALUE_ICONS[value.icon] ?? Heart }))
 
 export default function About() {
   const settings = useSettings()
+  // Counted from the founding year, so the page never says "Fourteen years"
+  // under a timeline that starts in 2005.
+  const founded = Number.parseInt(String(settings.established ?? ''), 10)
+  const years =
+    Number.isFinite(founded) && founded > 1900 ? new Date().getFullYear() - founded : Number(settings.stats_years) || 0
 
   return (
     <div className="relative px-4 pb-24 pt-16 sm:px-6">
@@ -46,8 +41,8 @@ export default function About() {
           {[
             { value: Number(settings.stats_customers) || 24000, suffix: '+', label: 'Customers served' },
             { value: Number(settings.stats_repairs) || 38500, suffix: '+', label: 'Devices repaired' },
-            { value: Number(settings.stats_brands) || 18, suffix: '', label: 'Brands stocked' },
-            { value: Number(settings.stats_years) || 14, suffix: '', label: 'Years in Ranchi' },
+            { value: Number(settings.stats_brands) || 12, suffix: '', label: 'Brands stocked' },
+            { value: years, suffix: '', label: 'Years in Ranchi' },
           ].map((stat, i) => (
             <Reveal key={stat.label} delay={Math.min(i * 0.04, 0.3)}>
               <div className="rounded-3xl border border-ink-700 bg-ink-850 lift p-8 text-center">
@@ -118,7 +113,7 @@ export default function About() {
         <div className="mt-28">
           <SectionTitle
             eyebrow="How we got here"
-            title={<>Fourteen years, <span className="text-brand-600">one street</span></>}
+            title={<>{years} years, <span className="text-brand-600">one street</span></>}
           />
 
           <div className="relative mt-16">

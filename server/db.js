@@ -196,9 +196,15 @@ const DEFAULT_SETTINGS = {
     'What started as a single counter selling recharge coupons in 2005 is today one of the busiest mobile destinations on Ratu Road.',
   about_body:
     'Vaishnavi Mobile Point sells authorised stock from every major brand, and our in-house service bench handles everything from a cracked display to a dead motherboard. Each repair is logged against a ticket number so you can follow the progress from your phone, and every device leaves with a written warranty.',
-  social_facebook: 'https://facebook.com/',
+  // Empty until the shop has these pages: a bare https://facebook.com/ told
+  // search engines the shop *was* Facebook (schema.org sameAs).
+  social_facebook: '',
   social_instagram: 'https://www.instagram.com/pointvaishnavimobile/',
-  social_youtube: 'https://youtube.com/',
+  social_youtube: '',
+  // The Google Business Profile's place ID: powers "Review us on Google" and
+  // points Directions and the structured data at the listing itself. This
+  // is the shop's claimed listing (same name, address, pin and plus code).
+  google_place_id: 'ChIJ4VmjLcvh9DkRRQy08l85PIo',
   stats_customers: '24000',
   stats_repairs: '38500',
   stats_brands: '12',
@@ -374,6 +380,8 @@ function seedIfEmpty() {
   const PLACEHOLDERS = [
     ['email', 'care@vaishnavimobile.in'],
     ['social_instagram', 'https://instagram.com/'],
+    ['social_facebook', 'https://facebook.com/'],
+    ['social_youtube', 'https://youtube.com/'],
   ]
   for (const [key, placeholder] of PLACEHOLDERS) {
     if (getSetting(key) === placeholder) setSetting(key, DEFAULT_SETTINGS[key])
@@ -410,16 +418,25 @@ function seedIfEmpty() {
     insertMovement.run(Number(result.lastInsertRowid), 'in', qty, qty, 'Opening stock', 'system')
   })
 
-  const insertFeedback = db.prepare(
-    "INSERT INTO feedback (name, city, rating, title, message, avatar_url, service, approved, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, datetime('now', ?))",
-  )
-  FEEDBACK.forEach(([name, city, rating, title, message, avatar, service], i) => {
-    // Newest first in the list, roughly a week apart going back.
-    insertFeedback.run(
-      name, city, rating, title, message, `https://i.pravatar.cc/160?img=${avatar}`, service,
-      `-${3 + i * 8} days`,
+  /*
+   * Sample reviews, for the CMS's moderation screen while developing. They
+   * used to be inserted everywhere as approved, so the live site published
+   * twelve "unedited" reviews no customer wrote, with stock faces and made-up
+   * dates. Now: never in production, and pending rather than published, so
+   * they cannot reach a public page even on a developer's machine.
+   */
+  if (process.env.NODE_ENV !== 'production') {
+    const insertFeedback = db.prepare(
+      "INSERT INTO feedback (name, city, rating, title, message, avatar_url, service, approved, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, datetime('now', ?))",
     )
-  })
+    FEEDBACK.forEach(([name, city, rating, title, message, avatar, service], i) => {
+      // Newest first in the list, roughly a week apart going back.
+      insertFeedback.run(
+        name, city, rating, title, message, `https://i.pravatar.cc/160?img=${avatar}`, service,
+        `-${3 + i * 8} days`,
+      )
+    })
+  }
 
   /*
    * Sample repair tickets and a sample enquiry, so every CMS screen has
@@ -428,7 +445,7 @@ function seedIfEmpty() {
    * for good, under made-up customers and phone numbers.
    */
   if (process.env.NODE_ENV === 'production') {
-    console.log(`[seed] ${PRODUCTS.length} products, ${FEEDBACK.length} reviews inserted (no sample tickets in production)`)
+    console.log(`[seed] ${PRODUCTS.length} products inserted (no sample reviews or tickets in production)`)
     return
   }
 
@@ -467,10 +484,36 @@ function seedIfEmpty() {
     'We need 12 budget smartphones for our field staff. Can you quote a corporate price with GST invoice?',
   )
 
-  console.log(`[seed] ${PRODUCTS.length} products, ${FEEDBACK.length} reviews, ${SAMPLE_BOOKINGS.length} repair tickets inserted`)
+  console.log(`[seed] ${PRODUCTS.length} products, ${FEEDBACK.length} pending sample reviews, ${SAMPLE_BOOKINGS.length} repair tickets inserted`)
 }
 
 seedIfEmpty()
+
+/* ------------------------------------------------------------------ *
+ * One-off fixes for databases that already exist. SQLite's user_version
+ * counts the ones applied, so each runs exactly once per database — and,
+ * because the database is replicated, once for the live site.
+ * ------------------------------------------------------------------ */
+
+function migrate() {
+  const { user_version: version } = db.prepare('PRAGMA user_version').get()
+
+  if (version < 1) {
+    // The first seed published the twelve sample reviews (FEEDBACK) as
+    // approved. Unpublish exactly those rows: same name and title, still on
+    // the stock avatar service. They stay under Reviews in the CMS, where
+    // staff can publish or delete them; real customers' reviews are untouched.
+    const hide = db.prepare(
+      "UPDATE feedback SET approved = 0 WHERE approved = 1 AND name = ? AND title = ? AND avatar_url LIKE 'https://i.pravatar.cc/%'",
+    )
+    let hidden = 0
+    for (const [name, , , title] of FEEDBACK) hidden += Number(hide.run(name, title).changes)
+    if (hidden) console.log(`[migrate] unpublished ${hidden} sample review(s) left by the demo seed`)
+    db.exec('PRAGMA user_version = 1')
+  }
+}
+
+migrate()
 
 /** Tickets a customer can see, in the order a repair moves through them. */
 export const STATUS_FLOW = ['received', 'diagnosing', 'awaiting_parts', 'repairing', 'ready', 'delivered']

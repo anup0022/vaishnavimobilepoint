@@ -1,0 +1,16 @@
+{
+  "timeline": [
+    { "year": "2005", "title": "One counter, one idea", "text": "Vaishnavi Mobile Point opens in Churi Centre Gali off Ratu Road, selling recharge coupons, SIM cards and a handful of feature phones." },
+    { "year": "2010", "title": "The repair bench arrives", "text": "A second-hand microscope and a soldering station turn a retail counter into a proper service centre." },
+    { "year": "2015", "title": "Brand partnerships", "text": "Authorised dealership for the major Indian smartphone brands, with GST billing and sealed stock only." },
+    { "year": "2019", "title": "Chip-level capability", "text": "Board-level repair added, taking on the jobs authorised centres turn away as \"not repairable\"." },
+    { "year": "2024", "title": "Tickets and tracking", "text": "Every repair gets a ticket number so customers can follow progress from home instead of calling the shop." },
+    { "year": "Today", "title": "A Ratu Road landmark", "text": "A full storefront plus a three-bench service room, serving thousands of customers across Ranchi every year." }
+  ],
+  "values": [
+    { "icon": "Heart", "title": "Tell the truth", "text": "If a repair is not worth the money we say so, even when it costs us the sale." },
+    { "icon": "Award", "title": "Genuine or nothing", "text": "Original and service-pack parts, printed on the bill so you can verify them yourself." },
+    { "icon": "Users", "title": "Explain, do not rush", "text": "Plenty of our customers are buying their first smartphone. Nobody leaves confused." },
+    { "icon": "Store", "title": "Stay reachable", "text": "Same counter, same faces, same phone number for over a decade." }
+  ]
+}

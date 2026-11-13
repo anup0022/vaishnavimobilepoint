@@ -13,6 +13,7 @@ import { useSettings, whatsappLink } from '@/lib/useSettings'
 import { applyNotFoundMeta, applyProductMeta } from '@/lib/pageMeta'
 import { trackPageView } from '@/lib/analytics'
 import SmartImage from '@/components/SmartImage'
+import ProductPhoto, { categoryIcon } from '@/components/ProductPhoto'
 import ProductCard from '@/components/ProductCard'
 import Reveal from '@/components/Reveal'
 import Magnetic from '@/components/Magnetic'
@@ -29,27 +30,39 @@ export default function ProductDetail() {
   const settings = useSettings()
   const [product, setProduct] = useState<Product | null>(null)
   const [related, setRelated] = useState<Product[]>([])
+  const [missing, setMissing] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     setLoading(true)
+    setMissing(false)
     setError('')
     api
       .get<{ product: Product; related: Product[] }>(`/api/products/${slug}`)
       .then((d) => {
         setProduct(d.product)
         setRelated(d.related)
-        applyProductMeta(d.product.name, d.product.description)
+        applyProductMeta(d.product)
         trackPageView()
       })
       .catch((e: ApiError) => {
-        setError(e.message)
-        applyNotFoundMeta()
+        // Only a 404 means the product is gone. A dropped connection, a
+        // timeout or a blocked request used to land here too and turn a real
+        // product page into "Item not found", with the not-found title.
+        if (e.status === 404) {
+          setMissing(true)
+          applyNotFoundMeta()
+        } else {
+          // The raw text ("Failed to fetch", a server message) means nothing
+          // to a shopper, so the page says it in plain words instead.
+          setError(e.message || 'failed')
+        }
         trackPageView()
       })
       .finally(() => setLoading(false))
-  }, [slug])
+  }, [slug, attempt])
 
   if (loading) {
     return (
@@ -67,11 +80,31 @@ export default function ProductDetail() {
     )
   }
 
-  if (error || !product) {
+  if (error) {
+    return (
+      <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-32 text-center">
+        <h1 className="mb-4 font-display text-4xl font-bold">We could not load this item</h1>
+        <p className="mb-8 text-mist-400">
+          The connection dropped or the server is busy. Please try again, or call {settings.phone_primary} and we
+          will tell you about it.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <button onClick={() => setAttempt((n) => n + 1)} className="btn-primary">
+            <RefreshCw size={18} /> Try again
+          </button>
+          <Link to="/products" className="btn-ghost">
+            <ArrowLeft size={18} /> Back to the catalogue
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (missing || !product) {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-32 text-center">
         <h1 className="mb-4 font-display text-4xl font-bold">Item not found</h1>
-        <p className="mb-8 text-mist-400">{error || 'That product is no longer in our catalogue.'}</p>
+        <p className="mb-8 text-mist-400">That product is no longer in our catalogue.</p>
         <Link to="/products" className="btn-primary">
           <ArrowLeft size={18} /> Back to the catalogue
         </Link>
@@ -85,12 +118,22 @@ export default function ProductDetail() {
     <div className="relative px-4 pb-24 pt-10 sm:px-6">
 
       <div className="relative mx-auto max-w-7xl">
-        <Link
-          to="/products"
-          className="mb-10 inline-flex items-center gap-2 text-sm font-medium text-mist-400 transition hover:text-brand-700"
-        >
-          <ArrowLeft size={16} /> Back to catalogue
-        </Link>
+        {/* The trail the page's BreadcrumbList markup describes (server/seo.js). */}
+        <nav aria-label="Breadcrumb" className="mb-10 text-sm font-medium text-mist-400">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li>
+              <Link to="/" className="transition hover:text-brand-700">Home</Link>
+            </li>
+            <li aria-hidden="true">›</li>
+            <li>
+              <Link to="/products" className="inline-flex items-center gap-1.5 transition hover:text-brand-700">
+                <ArrowLeft size={14} /> Shop
+              </Link>
+            </li>
+            <li aria-hidden="true">›</li>
+            <li aria-current="page" className="text-mist-300">{product.name}</li>
+          </ol>
+        </nav>
 
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           <motion.div
@@ -158,12 +201,14 @@ export default function ProductDetail() {
               <Reveal delay={0.1}>
                 <div className="mt-10 rounded-3xl border border-ink-700 bg-ink-850 lift p-7">
                   <h2 className="readout mb-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-mist-500">
-                    <Sparkles size={14} className="text-key" /> Telemetry
+                    <Sparkles size={14} className="text-key" /> Specifications
                   </h2>
                   <ul className="space-y-3">
                     {product.specs.map((spec, i) => (
                       <li key={spec} className="flex items-center gap-3">
-                        <span className="readout w-6 shrink-0 text-[10px] text-mist-500">
+                        {/* Decorative numbering: read aloud or extracted as text it
+                            fused with the spec, e.g. "0212MP dual camera". */}
+                        <span className="readout w-6 shrink-0 text-[10px] text-mist-500" aria-hidden="true">
                           {String(i + 1).padStart(2, '0')}
                         </span>
                         <span className="readout flex-1 text-[13px] text-mist-200">{spec}</span>
@@ -260,7 +305,8 @@ function OrbitGallery({ product }: { product: Product }) {
   }
 
   const frame = frames[index]
-  const big = responsive(frame.src, 1, [480, 720, 960, 1200, 1600])
+  const big = frame.placeholder ? null : responsive(frame.src, 1, [480, 720, 960, 1200, 1600])
+  const Icon = categoryIcon(product.category)
 
   return (
     <div>
@@ -290,14 +336,21 @@ function OrbitGallery({ product }: { product: Product }) {
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             className="relative"
           >
-            <SmartImage
-              src={big.src}
-              srcSet={big.srcSet}
-              sizes="(max-width: 1023px) calc(100vw - 40px), 600px"
-              alt={`${product.name} — ${frame.label}`}
-              seed={product.sku}
-              className="aspect-square w-full"
-            />
+            {big ? (
+              <SmartImage
+                src={big.src}
+                srcSet={big.srcSet}
+                sizes="(max-width: 1023px) calc(100vw - 40px), 600px"
+                alt={`${product.name} — ${frame.label}`}
+                seed={product.sku}
+                // The first frame is the page's largest image: fetch it first
+                // instead of lazily, once the product data has arrived.
+                priority={index === 0}
+                className="aspect-square w-full"
+              />
+            ) : (
+              <ProductPhoto product={product} sizes="(max-width: 1023px) calc(100vw - 40px), 600px" className="aspect-square w-full" />
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -333,10 +386,10 @@ function OrbitGallery({ product }: { product: Product }) {
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex gap-2">
           {frames.map((f, i) => {
-            const thumb = responsive(f.src, 1, [120, 180])
+            const thumb = f.placeholder ? null : responsive(f.src, 1, [120, 180])
             return (
             <button
-              key={f.src}
+              key={f.src || f.label}
               onClick={() => setIndex(i)}
               aria-label={f.label}
               aria-current={i === index}
@@ -344,14 +397,22 @@ function OrbitGallery({ product }: { product: Product }) {
                 i === index ? 'border-key' : 'border-ink-700 opacity-55 hover:opacity-90'
               }`}
             >
-              <SmartImage src={thumb.src} srcSet={thumb.srcSet} sizes="56px" alt="" seed={f.label} className="h-full w-full" />
+              {thumb ? (
+                <SmartImage src={thumb.src} srcSet={thumb.srcSet} sizes="56px" alt="" seed={f.label} className="h-full w-full" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center" aria-hidden="true">
+                  <Icon size={22} strokeWidth={1.25} className="opacity-50" />
+                </span>
+              )}
             </button>
             )
           })}
         </div>
         <p className="readout text-right text-[10px] uppercase tracking-[0.14em] text-mist-500">
           {frame.label}
-          {!frame.isReal && <span className="block normal-case tracking-normal">placeholder frame</span>}
+          {frame.placeholder && (
+            <span className="block normal-case tracking-normal">ask us on WhatsApp for a real photo</span>
+          )}
         </p>
       </div>
     </div>

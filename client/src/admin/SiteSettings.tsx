@@ -22,11 +22,16 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    title: 'Home page hero',
+    title: 'Home page',
     icon: FileText,
     fields: [
-      { key: 'hero_heading', label: 'Hero heading' },
-      { key: 'hero_sub', label: 'Hero sub-heading', type: 'textarea' },
+      {
+        key: 'hero_sub',
+        label: 'Home page intro',
+        hint: 'One or two sentences under the main heading: what you sell, where you are, since when. Search engines read it too.',
+        type: 'textarea',
+      },
+      { key: 'hero_heading', label: 'Hero heading', hint: 'Not shown by the current home page design.' },
     ],
   },
   {
@@ -58,6 +63,11 @@ const GROUPS: Group[] = [
       { key: 'latitude', label: 'Latitude', hint: 'Drops the map pin exactly on the shop.' },
       { key: 'longitude', label: 'Longitude' },
       { key: 'plus_code', label: 'Google Plus Code' },
+      {
+        key: 'google_place_id',
+        label: 'Google place ID',
+        hint: 'Your Google Business Profile’s ID (starts with ChIJ). Turns on "Review us on Google" and points Directions at your listing.',
+      },
     ],
   },
   {

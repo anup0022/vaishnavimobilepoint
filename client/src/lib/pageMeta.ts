@@ -16,8 +16,19 @@ interface MetaConfig {
   pages?: Record<string, PageCopy>
   /** "{name} in Ranchi | Shop" */
   product?: string
+  /** "{name}{price} from Shop, Ratu Road, Ranchi. {description}" */
+  productDescription?: string
   notFound?: PageCopy
   analytics?: string
+}
+
+const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })
+
+/** Cuts to snippet length on a word boundary, as server/seo.js does. */
+function clip(text: string, max = 155): string {
+  const t = text.replace(/\s+/g, ' ').trim()
+  if (t.length <= max) return t
+  return `${t.slice(0, max - 1).replace(/\s+\S*$/, '')}…`
 }
 
 function readConfig(): MetaConfig {
@@ -46,11 +57,24 @@ export function applyPageMeta(pathname: string) {
   apply(config.pages?.[path] ?? config.notFound)
 }
 
-export function applyProductMeta(name: string, description: string) {
+/**
+ * The same title and description the server wrote for this product, so
+ * moving between products in the app keeps the price and the shop's
+ * location in the snippet instead of a bare cut of the blurb. Function
+ * replacements, because a "$&" in a product's text must stay literal.
+ */
+export function applyProductMeta(product: { name: string; description: string; price: number }) {
   if (!config.product) return
+  const price = product.price > 0 ? ` at ${inr.format(product.price)}` : ''
+  const template = config.productDescription ?? '{name}{price}. {description}'
   apply({
-    title: config.product.replace('{name}', name),
-    description: description.replace(/\s+/g, ' ').trim().slice(0, 155),
+    title: config.product.replace('{name}', () => product.name),
+    description: clip(
+      template
+        .replace('{name}', () => product.name)
+        .replace('{price}', () => price)
+        .replace('{description}', () => product.description),
+    ),
   })
 }
 

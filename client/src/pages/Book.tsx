@@ -156,8 +156,10 @@ export default function Book() {
           </div>
 
           <p className="mt-9 border-t border-ink-700 pt-7 text-sm text-mist-500">
-            Bring the device to {settings.address_line2 || 'our counter'} any day between {settings.hours_weekday}, or
-            call <span className="text-mist-300">{settings.phone_primary}</span> to arrange a free pickup within Ranchi.
+            Bring the device to {settings.address_line2 || 'our counter'}: Monday to Saturday {settings.hours_weekday},
+            Sunday {settings.hours_sunday || 'closed'}. Or call{' '}
+            <span className="text-mist-300">{settings.phone_primary}</span> to ask about a free pickup (within 8 km of
+            Ratu Road, for repairs above ₹1,500).
           </p>
         </motion.div>
       </div>
@@ -404,7 +406,8 @@ export default function Book() {
             <a href={`tel:${(settings.phone_primary || '').replace(/\s/g, '')}`} className="text-brand-600 hover:underline">
               {settings.phone_primary}
             </a>{' '}
-            — we are open {settings.hours_weekday}, seven days a week.
+            — we are open {settings.hours_weekday} Monday to Saturday and {settings.hours_sunday || 'closed'} on
+            Sunday.
           </p>
         </Reveal>
       </div>
